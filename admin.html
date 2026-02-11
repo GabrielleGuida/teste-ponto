@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<title>Painel Administrativo</title>
+
+<link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+
+<style>
+*{
+  box-sizing:border-box;
+}
+
+body{
+  margin:0;
+  font-family:'Roboto', sans-serif;
+  display:flex;
+  height:100vh;
+  background:#f4f6f9;
+}
+
+/* Sidebar */
+.sidebar{
+  width:220px;
+  background:#1976d2;
+  color:white;
+  padding:20px;
+  display:flex;
+  flex-direction:column;
+}
+
+.sidebar h2{
+  font-weight:400;
+  margin-bottom:30px;
+}
+
+.menu-item{
+  display:flex;
+  align-items:center;
+  padding:12px;
+  border-radius:8px;
+  cursor:pointer;
+  transition:0.3s;
+  text-decoration:none;
+  color:white;
+  margin-bottom:10px;
+}
+
+.menu-item:hover{
+  background:rgba(255,255,255,0.15);
+}
+
+.menu-item i{
+  margin-right:10px;
+}
+
+.logout{
+  margin-top:auto;
+  background:#e53935;
+  border:none;
+  padding:10px;
+  border-radius:8px;
+  color:white;
+  cursor:pointer;
+  transition:0.3s;
+}
+
+.logout:hover{
+  background:#c62828;
+}
+
+/* Main content */
+.main{
+  flex:1;
+  padding:40px;
+}
+
+.header{
+  font-size:22px;
+  font-weight:500;
+  margin-bottom:30px;
+}
+
+.cards{
+  display:flex;
+  gap:20px;
+}
+
+.card{
+  background:white;
+  padding:25px;
+  border-radius:12px;
+  box-shadow:0 10px 25px rgba(0,0,0,0.08);
+  width:220px;
+  cursor:pointer;
+  transition:0.3s;
+  text-decoration:none;
+  color:#333;
+}
+
+.card:hover{
+  transform:translateY(-5px);
+}
+
+.card i{
+  font-size:40px;
+  color:#1976d2;
+  margin-bottom:15px;
+}
+</style>
+</head>
+<body>
+
+<div class="sidebar">
+  <h2>Admin</h2>
+
+  <a href="cadastro.html" class="menu-item">
+    <i class="material-icons">person_add</i>
+    Cadastrar
+  </a>
+
+  <a href="relatorio.html" class="menu-item">
+    <i class="material-icons">description</i>
+    Relatórios
+  </a>
+
+  <a href="dash.html" class="menu-item">
+    <i class="material-icons">description</i>
+    Acompanhe pelo Dash
+  </a>
+
+  <button class="logout" onclick="logout()">Sair</button>
+</div>
+
+<div class="main">
+  <div class="header">Painel Administrativo</div>
+
+  <div class="cards">
+
+    <a href="cadastro.html" class="card">
+      <i class="material-icons">group_add</i>
+      <div>Cadastrar Colaboradora</div>
+    </a>
+
+    <a href="relatorio.html" class="card">
+      <i class="material-icons">assessment</i>
+      <div>Emitir Relatório</div>
+    </a>
+
+    <a href="dash.html" class="card"> <i class="material-icons">assessment</i> <div>Dashboard</div> </a>
+
+  </div>
+</div>
+
+<script>
+function logout(){
+  window.location.href = "index.html";
+}
+</script>
+
+</body>
+</html>

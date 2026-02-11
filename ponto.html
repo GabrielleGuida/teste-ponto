@@ -1,0 +1,27 @@
+<h2>Registrar Ponto</h2>
+
+CPF: <input type="text" id="cpf"><br>
+Entrada: <input type="time" id="entrada"><br>
+Saída: <input type="time" id="saida"><br>
+Descanso: <input type="text" id="descanso"><br>
+
+<button onclick="registrar()">Registrar</button>
+
+<script>
+function registrar(){ 
+  let registros = JSON.parse(localStorage.getItem("registro_colaborador")) || [];
+
+  const novoRegistro = {
+    cpf: cpf.value,
+    data: new Date().toISOString().split("T")[0],
+    horario_inicio_ponto: entrada.value,
+    horario_fim_ponto: saida.value,
+    horario_descanso_ponto: descanso.value
+  };
+
+  registros.push(novoRegistro);
+  localStorage.setItem("registro_colaborador", JSON.stringify(registros));
+
+  alert("Ponto registrado!");
+}
+</script>

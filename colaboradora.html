@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<title>Painel da Colaboradora</title>
+
+<link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500&display=swap" rel="stylesheet">
+
+<style>
+body{
+  margin:0;
+  font-family:'Roboto', sans-serif;
+  background:#f4f6f9;
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  height:100vh;
+}
+
+.card{
+  background:white;
+  width:400px;
+  padding:30px;
+  border-radius:12px;
+  box-shadow:0 10px 25px rgba(0,0,0,0.08);
+}
+
+h2{
+  margin-top:0;
+  font-weight:500;
+  color:#333;
+}
+
+.info{
+  margin-bottom:20px;
+  font-size:14px;
+  color:#555;
+}
+
+.relogio{
+  font-size:22px;
+  font-weight:500;
+  color:#1976d2;
+  margin-bottom:20px;
+}
+
+label{
+  font-size:13px;
+  color:#666;
+}
+
+select{
+  width:100%;
+  padding:10px;
+  margin-top:5px;
+  border-radius:8px;
+  border:1px solid #ccc;
+  font-size:14px;
+}
+
+button{
+  width:100%;
+  margin-top:20px;
+  padding:12px;
+  border:none;
+  border-radius:8px;
+  background:#1976d2;
+  color:white;
+  font-size:15px;
+  font-weight:500;
+  cursor:pointer;
+  transition:0.3s;
+}
+
+button:hover{
+  background:#125ca1;
+}
+
+.success{
+  margin-top:15px;
+  font-size:13px;
+  color:green;
+}
+
+.top-bar{
+  display:flex;
+  justify-content:flex-end;
+  margin-bottom:10px;
+}
+
+.logout{
+  background:#e53935;
+  border:none;
+  color:white;
+  padding:6px 12px;
+  font-size:12px;
+  border-radius:6px;
+  cursor:pointer;
+  transition:0.3s;
+}
+
+.logout:hover{
+  background:#c62828;
+}
+
+</style>
+</head>
+<body>
+
+<div class="card">
+
+<h2>Painel da Colaboradora</h2>
+<div class="top-bar">
+  <button class="logout" onclick="logout()">Sair</button>
+</div>
+
+
+<div class="info" id="dados"></div>
+
+<div class="relogio" id="agora"></div>
+
+<label>Tipo de Registro</label>
+<select id="tipoPonto">
+  <option value="entrada">Entrada</option>
+  <option value="saida_almoco">Saída Almoço</option>
+  <option value="volta_almoco">Volta Almoço</option>
+  <option value="saida">Saída Final</option>
+</select>
+
+<button onclick="registrarPonto()">Registrar Ponto</button>
+
+<div class="success" id="mensagem"></div>
+
+</div>
+
+<script>
+const colaboradora = JSON.parse(localStorage.getItem("colaboradoraLogada"));
+
+if(!colaboradora){
+  window.location.href = "index.html";
+}
+
+document.getElementById("dados").innerHTML = `
+  <strong>${colaboradora.nome}</strong><br>
+  CPF: ${colaboradora.cpf}<br>
+  Horário: ${colaboradora.horario_inicio} - ${colaboradora.horario_saida}
+`;
+
+// Relógio ao vivo
+setInterval(() => {
+  const agora = new Date();
+  document.getElementById("agora").textContent =
+    agora.toLocaleDateString() + " " + agora.toLocaleTimeString();
+}, 1000);
+
+async function registrarPonto(){
+
+  const tipo = document.getElementById("tipoPonto").value;
+
+  const agora = new Date();
+  const horarioAtual = agora.toTimeString().slice(0,5);
+  const dataAtual = agora.toISOString().split("T")[0];
+
+  const registro = {
+    cpf: colaboradora.cpf,
+    nome: colaboradora.nome,
+    dia: {
+      data: dataAtual,
+      tipo: tipo,
+      hora: horarioAtual
+    }
+  };
+
+  const response = await fetch("/registrar-ponto", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(registro)
+  });
+
+  const resultado = await response.json();
+
+  document.getElementById("mensagem").textContent = resultado.mensagem;
+}
+
+function logout(){
+  localStorage.removeItem("colaboradoraLogada");
+  window.location.href = "index.html";
+}
+
+</script>
+
+</body>
+</html>

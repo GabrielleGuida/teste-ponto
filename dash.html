@@ -1,0 +1,288 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<title>Dashboard - Monitoramento</title>
+
+<link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+
+<style>
+body{
+  margin:0;
+  font-family:'Roboto', sans-serif;
+  background:#f4f6f9;
+}
+
+.header{
+  background:#1976d2;
+  color:white;
+  padding:20px;
+  font-size:20px;
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+}
+
+.container{
+  padding:30px;
+}
+
+.top-bar{
+  display:flex;
+  justify-content:space-between;
+  margin-bottom:20px;
+  flex-wrap:wrap;
+  gap:15px;
+}
+
+.metrics{
+  display:flex;
+  gap:15px;
+  flex-wrap:wrap;
+}
+
+.metric-card{
+  background:white;
+  padding:15px 20px;
+  border-radius:10px;
+  box-shadow:0 4px 12px rgba(0,0,0,0.08);
+  min-width:150px;
+}
+
+.metric-title{
+  font-size:12px;
+  color:#777;
+}
+
+.metric-value{
+  font-size:20px;
+  font-weight:500;
+}
+
+input[type="date"]{
+  padding:8px;
+  border-radius:6px;
+  border:1px solid #ccc;
+}
+
+.grid{
+  display:grid;
+  grid-template-columns:repeat(auto-fill,minmax(280px,1fr));
+  gap:20px;
+}
+
+.card{
+  background:white;
+  padding:20px;
+  border-radius:12px;
+  box-shadow:0 8px 20px rgba(0,0,0,0.08);
+  position:relative;
+}
+
+.nome{
+  font-weight:500;
+  font-size:16px;
+}
+
+.status{
+  font-size:13px;
+  font-weight:500;
+  padding:6px 10px;
+  border-radius:20px;
+  display:inline-block;
+  margin:8px 0;
+}
+
+.presente{ background:#e8f5e9; color:#2e7d32; }
+.atrasado{ background:#fff3e0; color:#ef6c00; }
+.ausente{ background:#ffebee; color:#c62828; }
+
+.online-dot{
+  width:10px;
+  height:10px;
+  background:#00e676;
+  border-radius:50%;
+  position:absolute;
+  top:15px;
+  right:15px;
+  animation:blink 1s infinite;
+}
+
+@keyframes blink{
+  0%{opacity:1;}
+  50%{opacity:0.3;}
+  100%{opacity:1;}
+}
+
+.info{
+  font-size:13px;
+  color:#555;
+}
+
+.alert{
+  color:#c62828;
+  font-size:12px;
+  margin-top:5px;
+}
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div style="display:flex; align-items:center; gap:15px;">
+    
+    <i class="material-icons" style="cursor:pointer;"
+       onclick="voltarAdmin()">arrow_back</i>
+
+    <div>
+      <i class="material-icons">assessment</i>
+      Dashboard Inteligente
+    </div>
+
+  </div>
+
+  <div style="display:flex; gap:15px; align-items:center;">
+
+    <i class="material-icons"
+       style="cursor:pointer;"
+       onclick="carregar()">refresh</i>
+
+  </div>
+</div>
+
+
+<div class="container">
+
+<div class="top-bar">
+
+  <div class="metrics">
+    <div class="metric-card">
+      <div class="metric-title">Presentes</div>
+      <div class="metric-value" id="mPresentes">0</div>
+    </div>
+
+    <div class="metric-card">
+      <div class="metric-title">Ausentes</div>
+      <div class="metric-value" id="mAusentes">0</div>
+    </div>
+
+    <div class="metric-card">
+      <div class="metric-title">Finalizados</div>
+      <div class="metric-value" id="mFinalizados">0</div>
+    </div>
+  </div>
+
+  <div>
+    <input type="date" id="filtroData">
+  </div>
+
+</div>
+
+<div class="grid" id="grid"></div>
+
+</div>
+
+<script>
+
+document.getElementById("filtroData").value =
+  new Date().toISOString().split("T")[0];
+
+async function carregar(){
+
+  const dataSelecionada = document.getElementById("filtroData").value;
+
+  const response = await fetch("/dashboard");
+  const dados = await response.json();
+
+  const grid = document.getElementById("grid");
+  grid.innerHTML = "";
+
+  let presentes=0, ausentes=0, finalizados=0;
+
+  dados.registros_ponto.forEach(colab => {
+
+    const registro = colab.dias.find(d => d.data === dataSelecionada);
+
+    let statusClass = "ausente";
+    let statusTexto = "Não registrou";
+    let contador = "";
+    let alerta = "";
+    let online = "";
+
+    if(registro){
+
+      if(registro.entrada && !registro.saida){
+        statusClass="presente";
+        statusTexto="Em expediente";
+        presentes++;
+
+        online = `<div class="online-dot"></div>`;
+
+        // contador
+        const agora = new Date();
+        const [h,m] = registro.entrada.split(":");
+        const inicio = new Date();
+        inicio.setHours(h,m,0);
+
+        const diff = Math.floor((agora - inicio)/60000);
+        const horas = Math.floor(diff/60);
+        const minutos = diff%60;
+
+        contador = `⏱ ${horas}h ${minutos}m trabalhando`;
+
+        // alerta atraso (considerando 08:00 padrão)
+        if(h > 8){
+          alerta = `<div class="alert">🔔 Entrada com atraso</div>`;
+        }
+
+      }
+
+      if(registro.saida){
+        statusClass="atrasado";
+        statusTexto="Expediente finalizado";
+        finalizados++;
+      }
+
+    } else {
+      ausentes++;
+    }
+
+    const card = `
+      <div class="card">
+        ${online}
+        <div class="nome">${colab.nome}</div>
+        <div class="status ${statusClass}">${statusTexto}</div>
+        <div class="info">CPF: ${colab.cpf}</div>
+        <div class="info">Entrada: ${registro?.entrada || "-"}</div>
+        <div class="info">Saída: ${registro?.saida || "-"}</div>
+        <div class="info">${contador}</div>
+        ${alerta}
+      </div>
+    `;
+
+    grid.innerHTML += card;
+
+  });
+
+  document.getElementById("mPresentes").textContent = presentes;
+  document.getElementById("mAusentes").textContent = ausentes;
+  document.getElementById("mFinalizados").textContent = finalizados;
+
+}
+
+carregar();
+setInterval(carregar, 60000);
+
+document.getElementById("filtroData")
+  .addEventListener("change", carregar);
+
+  function voltarAdmin(){
+  window.location.href = "admin.html";
+}
+
+
+</script>
+
+</body>
+</html>

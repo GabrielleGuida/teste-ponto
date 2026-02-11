@@ -1,0 +1,27 @@
+{
+  "colaboradoras": [
+    {
+      "nome": "Ana Souza",
+      "cpf": "12345678901",
+      "horario_inicio": "08:00",
+      "horario_saida": "17:00",
+      "horario_descanso": "12:00-13:00",
+      "dias_trabalhados_mes": 22
+    },
+    {
+      "nome": "Mariana Lima",
+      "cpf": "98765432100",
+      "horario_inicio": "09:00",
+      "horario_saida": "18:00",
+      "horario_descanso": "13:00-14:00",
+      "dias_trabalhados_mes": 20
+    },
+    {
+      "nome": "Gabriel",
+      "cpf": "323232323232",
+      "horario_inicio": "09:00",
+      "horario_saida": "13:00",
+      "horario_descanso": "13:00-14:00"
+    }
+  ]
+}

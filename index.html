@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<title>Login - Sistema de Ponto</title>
+
+<link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500&display=swap" rel="stylesheet">
+
+<style>
+*{
+  box-sizing:border-box;
+}
+
+body{
+  margin:0;
+  font-family:'Roboto', sans-serif;
+  height:100vh;
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  background:linear-gradient(135deg,#1976d2,#42a5f5);
+}
+
+.card{
+  background:white;
+  width:360px;
+  padding:40px;
+  border-radius:12px;
+  box-shadow:0 15px 35px rgba(0,0,0,0.2);
+}
+
+h2{
+  margin-top:0;
+  margin-bottom:30px;
+  font-weight:500;
+  text-align:center;
+  color:#333;
+}
+
+.input-group{
+  position:relative;
+  margin-bottom:25px;
+}
+
+input{
+  width:100%;
+  padding:12px 10px;
+  border:none;
+  border-bottom:2px solid #ccc;
+  font-size:14px;
+  outline:none;
+  transition:0.3s;
+}
+
+input:focus{
+  border-bottom:2px solid #1976d2;
+}
+
+button{
+  width:100%;
+  padding:12px;
+  border:none;
+  border-radius:8px;
+  background:#1976d2;
+  color:white;
+  font-size:15px;
+  font-weight:500;
+  cursor:pointer;
+  transition:0.3s;
+}
+
+button:hover{
+  background:#125ca1;
+  transform:translateY(-2px);
+}
+
+.footer{
+  text-align:center;
+  margin-top:15px;
+  font-size:12px;
+  color:#777;
+}
+</style>
+</head>
+<body>
+
+<div class="card">
+  <h2>Sistema de Ponto</h2>
+
+  <form id="loginForm">
+    <div class="input-group">
+      <input type="text" id="usuario" placeholder="Usuário ou CPF" required>
+    </div>
+
+    <div class="input-group">
+      <input type="password" id="senha" placeholder="Senha (somente admin)">
+    </div>
+
+    <button type="submit">Entrar</button>
+  </form>
+
+  <div class="footer">
+    © 2026 Sistema Interno
+  </div>
+</div>
+
+<script>
+document.getElementById("loginForm").addEventListener("submit", async function(e){
+  e.preventDefault();
+
+  const usuario = document.getElementById("usuario").value;
+  const senha = document.getElementById("senha").value;
+
+  if(usuario === "gabriel" && senha === "474849"){
+    window.location.href = "admin.html";
+    return;
+  }
+
+  try {
+    const response = await fetch("assets/colaboradoras.json");
+    const data = await response.json();
+
+    const colaboradora = data.colaboradoras.find(c => c.cpf === usuario);
+
+    if(colaboradora){
+      localStorage.setItem("colaboradoraLogada", JSON.stringify(colaboradora));
+      window.location.href = "colaboradora.html";
+    } else {
+      alert("CPF não encontrado!");
+    }
+
+  } catch(error){
+    console.error("Erro ao carregar colaboradoras:", error);
+  }
+});
+</script>
+
+</body>
+</html>

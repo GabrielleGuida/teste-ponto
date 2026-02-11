@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<title>Cadastrar Colaboradora</title>
+
+<link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500&display=swap" rel="stylesheet">
+
+<style>
+*{ box-sizing:border-box; }
+
+body{
+  margin:0;
+  font-family:'Roboto', sans-serif;
+  height:100vh;
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  background:linear-gradient(135deg,#1976d2,#42a5f5);
+}
+
+.card{
+  background:white;
+  width:420px;
+  padding:35px;
+  border-radius:12px;
+  box-shadow:0 15px 35px rgba(0,0,0,0.2);
+}
+
+.top-bar{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  margin-bottom:20px;
+}
+
+h2{
+  margin:0;
+  font-weight:500;
+  color:#333;
+}
+
+.voltar{
+  background:#9e9e9e;
+  border:none;
+  color:white;
+  padding:6px 12px;
+  margin-left: 20px;
+  border-radius:6px;
+  cursor:pointer;
+  font-size:12px;
+}
+
+.voltar:hover{
+  background:#757575;
+}
+
+.input-group{ margin-bottom:18px; }
+
+input{
+  width:100%;
+  padding:10px;
+  border:none;
+  border-bottom:2px solid #ccc;
+  font-size:14px;
+  outline:none;
+  transition:0.3s;
+}
+
+input:focus{
+  border-bottom:2px solid #1976d2;
+}
+
+button{
+  width:100%;
+  padding:12px;
+  border:none;
+  border-radius:8px;
+  background:#1976d2;
+  color:white;
+  font-size:15px;
+  font-weight:500;
+  cursor:pointer;
+  transition:0.3s;
+}
+
+button:hover{
+  background:#125ca1;
+  transform:translateY(-2px);
+}
+
+.mensagem{
+  margin-top:15px;
+  font-size:13px;
+}
+</style>
+</head>
+<body>
+
+<div class="card">
+
+<div class="top-bar">
+  <h2>Cadastro</h2>
+  <button class="voltar" onclick="voltar()">Voltar</button>
+</div>
+
+<form id="formCadastro">
+
+  <div class="input-group">
+    <input type="text" id="nome" placeholder="Nome completo" required>
+  </div>
+
+  <div class="input-group">
+    <input type="text" id="cpf" placeholder="CPF" required>
+  </div>
+
+  <div class="input-group">
+    <input type="time" id="inicio" required>
+  </div>
+
+  <div class="input-group">
+    <input type="time" id="saida" required>
+  </div>
+
+  <div class="input-group">
+    <input type="text" id="descanso" placeholder="Descanso (ex: 12:00-13:00)" required>
+  </div>
+
+  <button type="submit">Salvar Colaboradora</button>
+
+</form>
+
+<div class="mensagem" id="mensagem"></div>
+
+</div>
+
+<script>
+
+document.getElementById("formCadastro").addEventListener("submit", async function(e){
+  e.preventDefault();
+
+  const nova = {
+    nome: nome.value,
+    cpf: cpf.value,
+    horario_inicio: inicio.value,
+    horario_saida: saida.value,
+    horario_descanso: descanso.value
+  };
+
+  try {
+    const response = await fetch("/cadastrar-colaboradora", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(nova)
+    });
+
+    const resultado = await response.json();
+
+    if(response.ok){
+      document.getElementById("mensagem").style.color = "green";
+      document.getElementById("mensagem").textContent = resultado.mensagem;
+      document.getElementById("formCadastro").reset();
+    } else {
+      document.getElementById("mensagem").style.color = "red";
+      document.getElementById("mensagem").textContent = resultado.mensagem;
+    }
+
+  } catch(error){
+    document.getElementById("mensagem").style.color = "red";
+    document.getElementById("mensagem").textContent = "Erro ao conectar com servidor.";
+  }
+
+});
+
+function voltar(){
+  window.location.href = "admin.html";
+}
+</script>
+
+</body>
+</html>

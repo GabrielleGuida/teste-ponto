@@ -1,0 +1,64 @@
+{
+  "registros_ponto": [
+    {
+      "cpf": "12345678901",
+      "nome": "Ana Souza",
+      "dias": [
+        {
+          "data": "2026-02-01",
+          "entrada": "08:02",
+          "saida_almoco": "12:01",
+          "volta_almoco": "13:02",
+          "saida": "17:05"
+        },
+        {
+          "data": "2026-02-02",
+          "entrada": "08:00",
+          "saida_almoco": "12:00",
+          "volta_almoco": "13:00",
+          "saida": "17:00"
+        },
+        {
+          "data": "2026-02-11",
+          "entrada": "14:52"
+        },
+        {
+          "data": "2026-02-11",
+          "entrada": "14:53"
+        },
+        {
+          "data": "2026-02-11",
+          "entrada": "14:55"
+        },
+        {
+          "data": "2026-02-11",
+          "tipo": "saida",
+          "hora": "14:56"
+        },
+        {
+          "data": "2026-02-11",
+          "tipo": "saida",
+          "hora": "14:57"
+        },
+        {
+          "data": "2026-02-11",
+          "tipo": "volta_almoco",
+          "hora": "14:58"
+        }
+      ]
+    },
+    {
+      "cpf": "98765432100",
+      "nome": "Mariana Lima",
+      "dias": [
+        {
+          "data": "2026-02-01",
+          "entrada": "09:05",
+          "saida_almoco": "13:10",
+          "volta_almoco": "14:05",
+          "saida": "18:00"
+        }
+      ]
+    }
+  ]
+}
