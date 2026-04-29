@@ -282,7 +282,7 @@ body{
 
       <h1>Controle de ponto com acesso rapido para equipe e administracao.</h1>
       <p>
-        Entre com usuario administrativo ou com o CPF da colaboradora para registrar,
+        Entre com usuario administrativo ou com o CPF e a senha da colaboradora para registrar,
         acompanhar e manter a jornada organizada em um fluxo simples e seguro.
       </p>
 
@@ -319,7 +319,7 @@ body{
       </div>
 
       <h2>Acessar sistema</h2>
-      <p>Use seu usuario administrativo ou informe o CPF da colaboradora para continuar.</p>
+      <p>Use seu usuario administrativo ou informe o CPF e a senha da colaboradora para continuar.</p>
 
       <form id="loginForm" class="login-form">
         <div class="field">
@@ -329,12 +329,12 @@ body{
 
         <div class="field">
           <label for="senha">Senha</label>
-          <input type="password" id="senha" placeholder="Preencha apenas para acesso admin">
+          <input type="password" id="senha" placeholder="Digite sua senha" autocomplete="current-password">
         </div>
 
         <div class="helper">
           <i class="material-icons" style="font-size:18px;">info</i>
-          <span>Colaboradoras entram apenas com o CPF. Administradores usam usuario e senha.</span>
+          <span>Colaboradoras entram com CPF e senha. Administradores continuam usando usuario e senha.</span>
         </div>
 
         <button type="submit" class="submit-button">Entrar</button>
@@ -371,15 +371,26 @@ loginForm.addEventListener("submit", async (event) => {
     return;
   }
 
+  if (!senha) {
+    alert("Digite a senha da colaboradora.");
+    return;
+  }
+
   try {
-    const response = await fetch(`/api/colaboradoras/${encodeURIComponent(cpf)}`);
+    const response = await fetch("/api/login-colaboradora", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ cpf, senha }),
+    });
 
     if (!response.ok) {
-      alert("CPF nao encontrado!");
+      const resultado = await response.json();
+      alert(resultado.mensagem || "Nao foi possivel entrar com a colaboradora.");
       return;
     }
 
-    const colaboradora = await response.json();
+    const resultado = await response.json();
+    const colaboradora = resultado.colaboradora;
     localStorage.setItem("colaboradoraLogada", JSON.stringify(colaboradora));
     window.location.href = "colaboradora.html";
   } catch (error) {

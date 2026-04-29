@@ -241,6 +241,16 @@ tbody tr:hover{
   color:var(--wine);
 }
 
+.avatar-image{
+  width:44px;
+  height:44px;
+  border-radius:14px;
+  object-fit:cover;
+  display:block;
+  flex-shrink:0;
+  border:1px solid rgba(104,3,7,0.12);
+}
+
 .avatar.no-photo{
   background:rgba(104,3,7,0.08);
   color:var(--muted);
@@ -346,9 +356,24 @@ tbody tr:hover{
   transition:transform 0.2s ease, background 0.2s ease;
 }
 
+.action-button{
+  border:none;
+  cursor:pointer;
+  font-family:inherit;
+}
+
 .action-link:hover{
   transform:translateY(-1px);
   background:rgba(104,3,7,0.12);
+}
+
+.action-danger{
+  background:rgba(179,58,47,0.1);
+  color:var(--danger-text);
+}
+
+.action-danger:hover{
+  background:rgba(179,58,47,0.16);
 }
 
 .empty-state{
@@ -511,9 +536,9 @@ tbody tr:hover{
       </div>
 
       <div class="summary-card">
-        <div class="summary-label">Com foto facial</div>
+        <div class="summary-label">Com foto</div>
         <div class="summary-value" id="metricFotos">0</div>
-        <div class="summary-note" id="metricFotosNote">Cadastros prontos para reconhecimento</div>
+        <div class="summary-note" id="metricFotosNote">Cadastros com imagem salva</div>
       </div>
     </section>
 
@@ -619,6 +644,14 @@ function formatCpf(value) {
 
 function getEditHref(cpf) {
   return `cadastro.html?cpf=${encodeURIComponent(normalizeCpf(cpf))}`;
+}
+
+function getAvatarMarkup(colaboradora) {
+  if (colaboradora.foto_perfil) {
+    return `<img class="avatar-image" src="${colaboradora.foto_perfil}" alt="Foto de ${colaboradora.nome}">`;
+  }
+
+  return `<div class="avatar no-photo">${getInitials(colaboradora.nome)}</div>`;
 }
 
 function formatDateBr(value) {
@@ -844,8 +877,36 @@ function updateSummary(details) {
     ? `${ausentes} colaboradora(s) ainda sem movimento`
     : "Todas tiveram ao menos um registro";
   document.getElementById("metricFotosNote").textContent = fotos > 0
-    ? `${fotos} cadastro(s) prontos para reconhecimento`
+    ? `${fotos} cadastro(s) com imagem salva`
     : "Nenhuma foto cadastrada ainda";
+}
+
+async function excluirColaboradora(cpf, nomeCodificado) {
+  const nome = decodeURIComponent(nomeCodificado);
+  const confirmou = window.confirm(`Deseja apagar o cadastro de ${nome}? Essa acao tambem remove os registros de ponto dela.`);
+
+  if (!confirmou) {
+    return;
+  }
+
+  try {
+    const response = await fetch(`/api/colaboradoras/${encodeURIComponent(cpf)}`, {
+      method: "DELETE",
+    });
+
+    const resultado = await response.json();
+
+    if (!response.ok) {
+      window.alert(resultado.mensagem || "Nao foi possivel apagar a colaboradora.");
+      return;
+    }
+
+    window.alert(resultado.mensagem);
+    await carregar();
+  } catch (error) {
+    console.error("Erro ao apagar colaboradora:", error);
+    window.alert("Erro ao apagar colaboradora.");
+  }
 }
 
 function matchesFilters(item) {
@@ -908,7 +969,7 @@ function renderTable(items, total) {
       <tr>
         <td>
           <div class="person-cell">
-            <div class="avatar ${colaboradora.tem_foto ? "" : "no-photo"}">${getInitials(colaboradora.nome)}</div>
+            ${getAvatarMarkup(colaboradora)}
             <div>
               <div class="person-name">${colaboradora.nome}</div>
               <div class="muted">CPF ${formatCpf(colaboradora.cpf)}</div>
@@ -961,6 +1022,10 @@ function renderTable(items, total) {
               <i class="material-icons" style="font-size:16px;">edit</i>
               <span>Editar cadastro</span>
             </a>
+            <button class="action-link action-button action-danger" type="button" onclick="excluirColaboradora('${normalizeCpf(colaboradora.cpf)}', '${encodeURIComponent(colaboradora.nome)}')">
+              <i class="material-icons" style="font-size:16px;">delete</i>
+              <span>Apagar colaboradora</span>
+            </button>
           </div>
         </td>
       </tr>
