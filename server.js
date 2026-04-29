@@ -3,10 +3,17 @@ const fs = require("fs");
 const path = require("path");
 
 const app = express();
-app.use(express.json());
+// Aumentar o limite para suportar o envio de descritores faciais se necessário (embora sejam pequenos)
+app.use(express.json({ limit: '50mb' }));
 app.use(express.static(__dirname));
 
+// Servir a pasta node_modules para que o frontend acesse o face-api.js
+app.use('/node_modules', express.static(path.join(__dirname, 'node_modules')));
+// Servir a pasta models
+app.use('/models', express.static(path.join(__dirname, 'models')));
+
 const arquivo = path.join(__dirname, "assets", "registros_pontos.json");
+const caminhoColaboradoras = path.join(__dirname, "assets", "colaboradoras.json");
 
 // Registrar ponto
 app.post("/registrar-ponto", (req, res) => {
@@ -37,17 +44,7 @@ app.post("/registrar-ponto", (req, res) => {
     res.json({ mensagem: "Ponto registrado com sucesso!" });
 });
 
-const PORT = process.env.PORT || 3000;
-
-app.listen(PORT, () => {
-    console.log(`Servidor rodando na porta ${PORT}`);
-});
-
-
-const caminhoColaboradoras = path.join(__dirname, "assets", "colaboradoras.json");
-
 app.post("/cadastrar-colaboradora", (req, res) => {
-
     const nova = req.body;
 
     let banco = { colaboradoras: [] };
@@ -58,29 +55,28 @@ app.post("/cadastrar-colaboradora", (req, res) => {
     }
 
     // Verifica CPF duplicado
-    if (banco.colaboradoras.find(c => c.cpf === nova.cpf)) {
-        return res.status(400).json({ mensagem: "CPF já cadastrado!" });
+    const indexExistente = banco.colaboradoras.findIndex(c => c.cpf === nova.cpf);
+    if (indexExistente !== -1) {
+        // Se já existe, vamos atualizar (útil para recadastrar face)
+        banco.colaboradoras[indexExistente] = { ...banco.colaboradoras[indexExistente], ...nova };
+        fs.writeFileSync(caminhoColaboradoras, JSON.stringify(banco, null, 2));
+        return res.json({ mensagem: "Cadastro atualizado com sucesso!" });
     }
 
     banco.colaboradoras.push(nova);
-
     fs.writeFileSync(caminhoColaboradoras, JSON.stringify(banco, null, 2));
 
     res.json({ mensagem: "Colaboradora cadastrada com sucesso!" });
 });
 
-const caminhoRegistros = path.join(__dirname, "assets", "registros_pontos.json");
-
 app.get("/relatorio/:cpf", (req, res) => {
-
     const cpf = req.params.cpf;
 
-    if (!fs.existsSync(caminhoRegistros)) {
+    if (!fs.existsSync(arquivo)) {
         return res.json({ dias: [] });
     }
 
-    const dados = JSON.parse(fs.readFileSync(caminhoRegistros));
-
+    const dados = JSON.parse(fs.readFileSync(arquivo));
     const colaborador = dados.registros_ponto.find(c => c.cpf === cpf);
 
     if (!colaborador) {
@@ -90,26 +86,23 @@ app.get("/relatorio/:cpf", (req, res) => {
     res.json(colaborador);
 });
 
-
 app.get("/relatorio-geral", (req, res) => {
-
-    if (!fs.existsSync(caminhoRegistros)) {
+    if (!fs.existsSync(arquivo)) {
         return res.json({ registros_ponto: [] });
     }
-
-    const dados = JSON.parse(fs.readFileSync(caminhoRegistros));
-
+    const dados = JSON.parse(fs.readFileSync(arquivo));
     res.json(dados);
 });
 
-
 app.get("/dashboard", (req, res) => {
-
-    if (!fs.existsSync(caminhoRegistros)) {
+    if (!fs.existsSync(arquivo)) {
         return res.json({ registros_ponto: [] });
     }
-
-    const dados = JSON.parse(fs.readFileSync(caminhoRegistros));
-
+    const dados = JSON.parse(fs.readFileSync(arquivo));
     res.json(dados);
+});
+
+const PORT = process.env.PORT || 3000;
+app.listen(PORT, () => {
+    console.log(`Servidor rodando na porta ${PORT}`);
 });

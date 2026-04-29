@@ -5,6 +5,7 @@
 <title>Cadastrar Colaboradora</title>
 
 <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500&display=swap" rel="stylesheet">
+<script src="node_modules/face-api.js/dist/face-api.min.js"></script>
 
 <style>
 *{ box-sizing:border-box; }
@@ -16,7 +17,7 @@ body{
   display:flex;
   justify-content:center;
   align-items:center;
-  background:linear-gradient(135deg,#680307,#42a5f5);
+  background:linear-gradient(135deg,#680307,#680307);
 }
 
 .card{
@@ -25,6 +26,8 @@ body{
   padding:35px;
   border-radius:12px;
   box-shadow:0 15px 35px rgba(0,0,0,0.2);
+  max-height: 95vh;
+  overflow-y: auto;
 }
 
 .top-bar{
@@ -71,6 +74,34 @@ input:focus{
   border-bottom:2px solid #680307;
 }
 
+.camera-container {
+  text-align: center;
+  margin-bottom: 18px;
+}
+
+#video {
+  width: 100%;
+  border-radius: 8px;
+  background: #000;
+  display: none;
+}
+
+#canvas {
+  display: none;
+}
+
+#photo-preview {
+  width: 100%;
+  border-radius: 8px;
+  margin-top: 10px;
+  display: none;
+}
+
+.btn-camera {
+  background: #42a5f5;
+  margin-bottom: 10px;
+}
+
 button{
   width:100%;
   padding:12px;
@@ -87,6 +118,11 @@ button{
 button:hover{
   background:#125ca1;
   transform:translateY(-2px);
+}
+
+button:disabled {
+  background: #ccc;
+  cursor: not-allowed;
 }
 
 .mensagem{
@@ -126,7 +162,16 @@ button:hover{
     <input type="text" id="descanso" placeholder="Descanso (ex: 12:00-13:00)" required>
   </div>
 
-  <button type="submit">Salvar Colaboradora</button>
+  <div class="camera-container">
+    <label style="display:block; margin-bottom:10px; font-size:14px;">Foto para Reconhecimento Facial</label>
+    <video id="video" autoplay muted></video>
+    <canvas id="canvas"></canvas>
+    <img id="photo-preview" src="" alt="Preview">
+    <button type="button" id="btn-iniciar-camera" class="btn-camera">Iniciar Câmera</button>
+    <button type="button" id="btn-capturar" class="btn-camera" style="display:none;">Capturar Foto</button>
+  </div>
+
+  <button type="submit" id="btn-salvar">Salvar Colaboradora</button>
 
 </form>
 
@@ -135,16 +180,80 @@ button:hover{
 </div>
 
 <script>
+let faceDescriptor = null;
+const video = document.getElementById('video');
+const canvas = document.getElementById('canvas');
+const photoPreview = document.getElementById('photo-preview');
+const btnIniciar = document.getElementById('btn-iniciar-camera');
+const btnCapturar = document.getElementById('btn-capturar');
+const btnSalvar = document.getElementById('btn-salvar');
+
+// Carregar modelos do face-api
+async function loadModels() {
+  await faceapi.nets.tinyFaceDetector.loadFromUri('/models');
+  await faceapi.nets.faceLandmark68Net.loadFromUri('/models');
+  await faceapi.nets.faceRecognitionNet.loadFromUri('/models');
+  console.log("Modelos carregados");
+}
+
+loadModels();
+
+btnIniciar.addEventListener('click', async () => {
+  try {
+    const stream = await navigator.mediaDevices.getUserMedia({ video: true });
+    video.srcObject = stream;
+    video.style.display = 'block';
+    photoPreview.style.display = 'none';
+    btnIniciar.style.display = 'none';
+    btnCapturar.style.display = 'block';
+  } catch (err) {
+    alert("Erro ao acessar a câmera: " + err);
+  }
+});
+
+btnCapturar.addEventListener('click', async () => {
+  canvas.width = video.videoWidth;
+  canvas.height = video.videoHeight;
+  canvas.getContext('2d').drawImage(video, 0, 0);
+  
+  const dataUrl = canvas.toDataURL('image/jpeg');
+  photoPreview.src = dataUrl;
+  photoPreview.style.display = 'block';
+  video.style.display = 'none';
+  btnCapturar.style.display = 'none';
+  btnIniciar.textContent = "Tirar outra foto";
+  btnIniciar.style.display = 'block';
+
+  // Extrair descritor facial
+  document.getElementById("mensagem").textContent = "Processando rosto...";
+  const detection = await faceapi.detectSingleFace(canvas, new faceapi.TinyFaceDetectorOptions()).withFaceLandmarks().withFaceDescriptor();
+  
+  if (detection) {
+    faceDescriptor = Array.from(detection.descriptor);
+    document.getElementById("mensagem").style.color = "green";
+    document.getElementById("mensagem").textContent = "Rosto detectado com sucesso!";
+  } else {
+    faceDescriptor = null;
+    document.getElementById("mensagem").style.color = "red";
+    document.getElementById("mensagem").textContent = "Nenhum rosto detectado. Tente novamente.";
+  }
+});
 
 document.getElementById("formCadastro").addEventListener("submit", async function(e){
   e.preventDefault();
 
+  if (!faceDescriptor) {
+    alert("Por favor, capture uma foto com um rosto visível antes de salvar.");
+    return;
+  }
+
   const nova = {
-    nome: nome.value,
-    cpf: cpf.value,
-    horario_inicio: inicio.value,
-    horario_saida: saida.value,
-    horario_descanso: descanso.value
+    nome: document.getElementById("nome").value,
+    cpf: document.getElementById("cpf").value,
+    horario_inicio: document.getElementById("inicio").value,
+    horario_saida: document.getElementById("saida").value,
+    horario_descanso: document.getElementById("descanso").value,
+    face_descriptor: faceDescriptor // Salvando o descritor facial
   };
 
   try {
@@ -160,6 +269,8 @@ document.getElementById("formCadastro").addEventListener("submit", async functio
       document.getElementById("mensagem").style.color = "green";
       document.getElementById("mensagem").textContent = resultado.mensagem;
       document.getElementById("formCadastro").reset();
+      photoPreview.style.display = 'none';
+      faceDescriptor = null;
     } else {
       document.getElementById("mensagem").style.color = "red";
       document.getElementById("mensagem").textContent = resultado.mensagem;

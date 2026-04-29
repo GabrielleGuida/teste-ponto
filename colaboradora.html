@@ -5,12 +5,13 @@
 <title>Painel da Colaboradora</title>
 
 <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500&display=swap" rel="stylesheet">
+<script src="node_modules/face-api.js/dist/face-api.min.js"></script>
 
 <style>
 body{
   margin:0;
   font-family:'Roboto', sans-serif;
-  background:#f4f6f9;
+  background:linear-gradient(135deg,#680307,#680307);
   display:flex;
   justify-content:center;
   align-items:center;
@@ -23,6 +24,8 @@ body{
   padding:30px;
   border-radius:12px;
   box-shadow:0 10px 25px rgba(0,0,0,0.08);
+  max-height: 95vh;
+  overflow-y: auto;
 }
 
 h2{
@@ -58,6 +61,22 @@ select{
   font-size:14px;
 }
 
+.camera-box {
+  margin-top: 20px;
+  text-align: center;
+}
+
+#video {
+  width: 100%;
+  border-radius: 8px;
+  background: #000;
+  transform: scaleX(-1);
+}
+
+#canvas {
+  display: none;
+}
+
 button{
   width:100%;
   margin-top:20px;
@@ -76,10 +95,21 @@ button:hover{
   background:#125ca1;
 }
 
+button:disabled {
+  background: #ccc;
+  cursor: not-allowed;
+}
+
 .success{
   margin-top:15px;
   font-size:13px;
   color:green;
+}
+
+.error {
+  margin-top:15px;
+  font-size:13px;
+  color:red;
 }
 
 .top-bar{
@@ -127,14 +157,24 @@ button:hover{
   <option value="saida">Saída Final</option>
 </select>
 
-<button onclick="registrarPonto()">Registrar Ponto</button>
+<div class="camera-box">
+  <label style="display:block; margin-bottom:10px;">Reconhecimento Facial Obrigatório</label>
+  <video id="video" autoplay muted></video>
+  <canvas id="canvas"></canvas>
+</div>
 
-<div class="success" id="mensagem"></div>
+<button id="btnRegistrar" onclick="validarERegistrar()">Validar Face e Registrar Ponto</button>
+
+<div id="mensagem"></div>
 
 </div>
 
 <script>
 const colaboradora = JSON.parse(localStorage.getItem("colaboradoraLogada"));
+const video = document.getElementById('video');
+const canvas = document.getElementById('canvas');
+const btnRegistrar = document.getElementById('btnRegistrar');
+const msgDiv = document.getElementById('mensagem');
 
 if(!colaboradora){
   window.location.href = "index.html";
@@ -153,10 +193,75 @@ setInterval(() => {
     agora.toLocaleDateString() + " " + agora.toLocaleTimeString();
 }, 1000);
 
+async function init() {
+  try {
+    msgDiv.className = "";
+    msgDiv.textContent = "Carregando módulos de segurança...";
+    btnRegistrar.disabled = true;
+
+    await faceapi.nets.tinyFaceDetector.loadFromUri('/models');
+    await faceapi.nets.faceLandmark68Net.loadFromUri('/models');
+    await faceapi.nets.faceRecognitionNet.loadFromUri('/models');
+
+    const stream = await navigator.mediaDevices.getUserMedia({ video: true });
+    video.srcObject = stream;
+    
+    msgDiv.textContent = "Câmera pronta. Posicione seu rosto.";
+    btnRegistrar.disabled = false;
+  } catch (err) {
+    msgDiv.className = "error";
+    msgDiv.textContent = "Erro ao acessar câmera ou carregar modelos.";
+    console.error(err);
+  }
+}
+
+init();
+
+async function validarERegistrar() {
+  msgDiv.className = "";
+  msgDiv.textContent = "Validando identidade...";
+  btnRegistrar.disabled = true;
+
+  if (!colaboradora.face_descriptor) {
+    msgDiv.className = "error";
+    msgDiv.textContent = "Erro: Colaboradora sem biometria cadastrada. Contate o admin.";
+    btnRegistrar.disabled = false;
+    return;
+  }
+
+  // Capturar frame atual
+  canvas.width = video.videoWidth;
+  canvas.height = video.videoHeight;
+  canvas.getContext('2d').drawImage(video, 0, 0);
+
+  const detection = await faceapi.detectSingleFace(canvas, new faceapi.TinyFaceDetectorOptions()).withFaceLandmarks().withFaceDescriptor();
+
+  if (!detection) {
+    msgDiv.className = "error";
+    msgDiv.textContent = "Rosto não detectado. Tente novamente.";
+    btnRegistrar.disabled = false;
+    return;
+  }
+
+  // Comparar descritores
+  const savedDescriptor = new Float32Array(colaboradora.face_descriptor);
+  const currentDescriptor = detection.descriptor;
+  const distance = faceapi.euclideanDistance(savedDescriptor, currentDescriptor);
+
+  // Limiar de 0.6 é padrão para reconhecimento facial
+  if (distance < 0.5) {
+    msgDiv.className = "success";
+    msgDiv.textContent = "Identidade confirmada! Registrando...";
+    await registrarPonto();
+  } else {
+    msgDiv.className = "error";
+    msgDiv.textContent = "Reconhecimento falhou. Acesso negado.";
+    btnRegistrar.disabled = false;
+  }
+}
+
 async function registrarPonto(){
-
   const tipo = document.getElementById("tipoPonto").value;
-
   const agora = new Date();
   const horarioAtual = agora.toTimeString().slice(0,5);
   const dataAtual = agora.toISOString().split("T")[0];
@@ -171,15 +276,24 @@ async function registrarPonto(){
     }
   };
 
-  const response = await fetch("/registrar-ponto", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(registro)
-  });
+  try {
+    const response = await fetch("/registrar-ponto", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(registro)
+    });
 
-  const resultado = await response.json();
-
-  document.getElementById("mensagem").textContent = resultado.mensagem;
+    const resultado = await response.json();
+    msgDiv.className = "success";
+    msgDiv.textContent = resultado.mensagem;
+    
+    // Opcional: Bloquear botão após sucesso
+    btnRegistrar.disabled = true;
+  } catch (err) {
+    msgDiv.className = "error";
+    msgDiv.textContent = "Erro ao salvar registro no servidor.";
+    btnRegistrar.disabled = false;
+  }
 }
 
 function logout(){
