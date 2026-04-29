@@ -491,6 +491,12 @@ body{
             <div class="field-note" id="cpfEditHint">O CPF fica bloqueado na edicao para atualizar o cadastro correto.</div>
           </div>
 
+          <div class="input-group full">
+            <label for="senha">Senha de acesso</label>
+            <input type="password" id="senha" placeholder="Crie a senha da colaboradora" autocomplete="new-password" required>
+            <div class="field-note" id="senhaHint" style="display:block;">Essa senha sera usada no login da colaboradora com o CPF.</div>
+          </div>
+
           <div class="input-group">
             <label for="inicio">Horario de inicio</label>
             <input type="time" id="inicio" required>
@@ -549,6 +555,8 @@ body{
 <script>
 let faceDescriptor = null;
 let editCpf = null;
+let editHasPassword = false;
+let photoDataUrl = "";
 
 const formCadastro = document.getElementById("formCadastro");
 const mensagem = document.getElementById("mensagem");
@@ -563,6 +571,8 @@ const tituloPagina = document.getElementById("tituloPagina");
 const modoBadge = document.getElementById("modoBadge");
 const cpfInput = document.getElementById("cpf");
 const cpfEditHint = document.getElementById("cpfEditHint");
+const senhaInput = document.getElementById("senha");
+const senhaHint = document.getElementById("senhaHint");
 const btnSalvar = document.getElementById("btn-salvar");
 const previewPlaceholder = document.getElementById("previewPlaceholder");
 
@@ -597,6 +607,7 @@ function hidePlaceholder() {
 
 function resetPhotoState() {
   faceDescriptor = null;
+  photoDataUrl = "";
   photoPreview.src = "";
   photoPreview.style.display = "none";
   video.style.display = "none";
@@ -608,6 +619,7 @@ function resetPhotoState() {
 
 function showPreview(dataUrl) {
   hidePlaceholder();
+  photoDataUrl = dataUrl;
   photoPreview.src = dataUrl;
   photoPreview.style.display = "block";
   video.style.display = "none";
@@ -660,17 +672,28 @@ async function detectFaceFromElement(element) {
 
 function setEditMode(colaboradora) {
   editCpf = normalizeCpf(colaboradora.cpf);
+  editHasPassword = Boolean(colaboradora.tem_senha);
   tituloPagina.textContent = "Editar Cadastro";
   modoBadge.style.display = "inline";
   cpfInput.value = colaboradora.cpf || "";
   cpfInput.readOnly = true;
   cpfEditHint.style.display = "block";
   btnSalvar.textContent = "Salvar Alteracoes";
+  senhaInput.value = "";
+  senhaInput.required = !editHasPassword;
+  senhaHint.textContent = editHasPassword
+    ? "Deixe em branco para manter a senha atual ou preencha uma nova para redefinir."
+    : "Esta colaboradora ainda nao possui senha cadastrada. Defina uma para liberar o login com CPF.";
+  senhaHint.style.display = "block";
 
   document.getElementById("nome").value = colaboradora.nome || "";
   document.getElementById("inicio").value = colaboradora.horario_inicio || "";
   document.getElementById("saida").value = colaboradora.horario_saida || "";
   document.getElementById("descanso").value = colaboradora.horario_descanso || "";
+
+  if (colaboradora.foto_perfil) {
+    showPreview(colaboradora.foto_perfil);
+  }
 
   if (colaboradora.tem_foto) {
     setMensagem("Cadastro carregado. Esta colaboradora ja possui foto facial salva. Envie uma nova apenas se quiser substituir.", "#6f655f");
@@ -785,13 +808,23 @@ btnCapturar.addEventListener("click", async () => {
 formCadastro.addEventListener("submit", async (event) => {
   event.preventDefault();
 
+  const senha = senhaInput.value.trim();
+
+  // Senha é obrigatória apenas se for novo cadastro E não tiver senha
+  // Em modo edição, senha é opcional (deixar em branco mantém a anterior)
+  if (!senha && !editCpf) {
+    setMensagem("Informe uma senha para o acesso da colaboradora.", "#b33a2f");
+    return;
+  }
+
   const nova = {
     nome: document.getElementById("nome").value.trim(),
     cpf: editCpf || normalizeCpf(document.getElementById("cpf").value),
+    ...(senha ? { senha } : {}),
     horario_inicio: document.getElementById("inicio").value,
     horario_saida: document.getElementById("saida").value,
     horario_descanso: document.getElementById("descanso").value.trim(),
-    ...(faceDescriptor ? { face_descriptor: faceDescriptor } : {}),
+    ...(faceDescriptor ? { face_descriptor: faceDescriptor, foto_perfil: photoDataUrl } : {}),
   };
 
   try {
@@ -810,8 +843,15 @@ formCadastro.addEventListener("submit", async (event) => {
 
     if (editCpf) {
       setMensagem(resultado.mensagem, "#1f7a39");
+      editHasPassword = Boolean(resultado.colaboradora?.tem_senha);
+      senhaInput.value = "";
+      senhaInput.required = !editHasPassword;
+      senhaHint.textContent = "Deixe em branco para manter a senha atual ou preencha uma nova para redefinir.";
       stopCamera();
       resetPhotoState();
+      if (resultado.colaboradora?.foto_perfil) {
+        showPreview(resultado.colaboradora.foto_perfil);
+      }
       cpfInput.value = editCpf;
       cpfInput.readOnly = true;
       cpfEditHint.style.display = "block";

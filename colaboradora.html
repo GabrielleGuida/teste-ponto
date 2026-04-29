@@ -1,0 +1,629 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<title>Painel da Colaboradora</title>
+
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+<script src="node_modules/face-api.js/dist/face-api.min.js"></script>
+
+<style>
+:root{
+  --wine:#680307;
+  --wine-dark:#3f0105;
+  --sand:#e8d9c3;
+  --paper:#fffaf4;
+  --ink:#2d2725;
+  --muted:#7b6d66;
+  --line:rgba(104,3,7,0.14);
+  --shadow:0 28px 60px rgba(39,11,13,0.22);
+}
+
+*{
+  box-sizing:border-box;
+}
+
+body{
+  margin:0;
+  min-height:100vh;
+  font-family:'Manrope', sans-serif;
+  color:var(--ink);
+  background:
+    radial-gradient(circle at 12% 14%, rgba(232,217,195,0.18), transparent 22%),
+    radial-gradient(circle at 88% 10%, rgba(184,95,42,0.18), transparent 20%),
+    linear-gradient(135deg, var(--wine-dark) 0%, var(--wine) 46%, #9a5d35 100%);
+}
+
+.page-shell{
+  min-height:100vh;
+  display:grid;
+  place-items:center;
+  padding:28px;
+}
+
+.layout{
+  width:min(1120px, 100%);
+  display:grid;
+  grid-template-columns:0.94fr 1.06fr;
+  gap:24px;
+}
+
+.info-panel,
+.action-panel{
+  border-radius:30px;
+  overflow:hidden;
+  box-shadow:var(--shadow);
+}
+
+.info-panel{
+  position:relative;
+  padding:36px;
+  color:var(--sand);
+  background:
+    linear-gradient(150deg, rgba(232,217,195,0.12), transparent 55%),
+    linear-gradient(135deg, rgba(46,8,10,0.82), rgba(104,3,7,0.94));
+}
+
+.info-panel::after{
+  content:"";
+  position:absolute;
+  right:-90px;
+  bottom:-90px;
+  width:260px;
+  height:260px;
+  border-radius:50%;
+  background:radial-gradient(circle, rgba(232,217,195,0.18), transparent 70%);
+}
+
+.top-row{
+  display:flex;
+  justify-content:space-between;
+  align-items:flex-start;
+  gap:16px;
+  margin-bottom:22px;
+}
+
+.eyebrow{
+  display:inline-flex;
+  align-items:center;
+  gap:8px;
+  padding:9px 14px;
+  border-radius:999px;
+  background:rgba(255,255,255,0.1);
+  border:1px solid rgba(255,255,255,0.12);
+  font-size:12px;
+  font-weight:700;
+  text-transform:uppercase;
+  letter-spacing:0.08em;
+}
+
+.logout{
+  border:none;
+  border-radius:16px;
+  background:rgba(255,255,255,0.12);
+  color:var(--sand);
+  padding:12px 16px;
+  font:inherit;
+  font-weight:700;
+  cursor:pointer;
+  display:inline-flex;
+  align-items:center;
+  gap:8px;
+}
+
+.info-panel h2{
+  margin:0 0 12px;
+  font-size:36px;
+  line-height:1.08;
+}
+
+.lead{
+  margin:0 0 24px;
+  color:rgba(232,217,195,0.86);
+  line-height:1.7;
+}
+
+.info-card{
+  display:grid;
+  gap:16px;
+  padding:20px;
+  border-radius:24px;
+  background:rgba(255,255,255,0.08);
+  border:1px solid rgba(255,255,255,0.1);
+  margin-bottom:16px;
+}
+
+.profile-row{
+  display:flex;
+  gap:16px;
+  align-items:center;
+}
+
+.profile-photo{
+  width:78px;
+  height:78px;
+  border-radius:24px;
+  object-fit:cover;
+  border:1px solid rgba(255,255,255,0.22);
+  flex-shrink:0;
+}
+
+.profile-avatar{
+  width:78px;
+  height:78px;
+  border-radius:24px;
+  display:grid;
+  place-items:center;
+  font-size:24px;
+  font-weight:800;
+  color:var(--wine);
+  background:rgba(232,217,195,0.86);
+  flex-shrink:0;
+}
+
+.clock-box{
+  padding:18px 20px;
+  border-radius:22px;
+  background:rgba(255,255,255,0.08);
+  border:1px solid rgba(255,255,255,0.1);
+}
+
+.clock-label{
+  display:block;
+  margin-bottom:8px;
+  font-size:12px;
+  letter-spacing:0.08em;
+  text-transform:uppercase;
+  color:rgba(232,217,195,0.74);
+}
+
+.relogio{
+  font-size:26px;
+  font-weight:800;
+}
+
+.action-panel{
+  padding:30px;
+  background:rgba(255,250,244,0.95);
+  border:1px solid rgba(255,255,255,0.72);
+  backdrop-filter:blur(10px);
+}
+
+.action-panel h3{
+  margin:0 0 10px;
+  font-size:30px;
+}
+
+.action-panel p{
+  margin:0 0 22px;
+  color:var(--muted);
+  line-height:1.65;
+}
+
+.field{
+  display:grid;
+  gap:8px;
+  margin-bottom:20px;
+}
+
+.field label{
+  font-size:13px;
+  font-weight:700;
+  color:var(--muted);
+}
+
+select{
+  width:100%;
+  padding:15px 16px;
+  border-radius:18px;
+  border:1px solid rgba(104,3,7,0.14);
+  background:#fff;
+  font:inherit;
+  color:var(--ink);
+  outline:none;
+  transition:border-color 0.2s ease, box-shadow 0.2s ease, transform 0.2s ease;
+}
+
+select:focus{
+  border-color:rgba(104,3,7,0.42);
+  box-shadow:0 0 0 4px rgba(104,3,7,0.08);
+  transform:translateY(-1px);
+}
+
+.camera-box{
+  padding:18px;
+  border-radius:24px;
+  border:1px solid var(--line);
+  background:linear-gradient(180deg, rgba(255,255,255,0.78), rgba(232,217,195,0.4));
+}
+
+.camera-box strong{
+  display:block;
+  margin-bottom:6px;
+  font-size:15px;
+}
+
+.camera-box p{
+  margin:0 0 14px;
+  font-size:14px;
+}
+
+.camera-frame{
+  border-radius:22px;
+  overflow:hidden;
+  background:#1a1412;
+  border:1px solid rgba(104,3,7,0.14);
+}
+
+#video{
+  width:100%;
+  display:block;
+  background:#000;
+  transform:scaleX(-1);
+}
+
+#canvas{
+  display:none;
+}
+
+.submit-button{
+  width:100%;
+  margin-top:18px;
+  border:none;
+  border-radius:18px;
+  padding:16px 18px;
+  background:linear-gradient(135deg, var(--wine), #8a1f24);
+  color:var(--sand);
+  font:inherit;
+  font-size:15px;
+  font-weight:800;
+  cursor:pointer;
+  box-shadow:0 18px 34px rgba(104,3,7,0.24);
+  transition:transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.submit-button:hover{
+  transform:translateY(-2px);
+  box-shadow:0 22px 38px rgba(104,3,7,0.28);
+}
+
+.submit-button:disabled{
+  background:#cabdb5;
+  color:#8f817a;
+  box-shadow:none;
+  cursor:not-allowed;
+}
+
+#mensagem{
+  margin-top:16px;
+  padding:14px 16px;
+  border-radius:18px;
+  background:rgba(104,3,7,0.05);
+  color:var(--muted);
+  font-size:13px;
+  line-height:1.55;
+  min-height:52px;
+}
+
+#mensagem.success{
+  color:#1f7a39;
+}
+
+#mensagem.error{
+  color:#b33a2f;
+}
+
+@media (max-width: 980px){
+  .layout{
+    grid-template-columns:1fr;
+  }
+}
+
+@media (max-width: 640px){
+  .page-shell{
+    padding:18px;
+  }
+
+  .info-panel,
+  .action-panel{
+    border-radius:24px;
+    padding:24px;
+  }
+
+  .top-row{
+    flex-direction:column;
+  }
+
+  .info-panel h2,
+  .action-panel h3{
+    font-size:30px;
+  }
+}
+</style>
+</head>
+<body>
+
+<div class="page-shell">
+  <div class="layout">
+    <section class="info-panel">
+      <div class="top-row">
+        <span class="eyebrow">
+          <i class="material-icons" style="font-size:16px;">verified_user</i>
+          Area da colaboradora
+        </span>
+
+        <button class="logout" onclick="logout()">
+          <i class="material-icons" style="font-size:18px;">logout</i>
+          <span>Sair</span>
+        </button>
+      </div>
+
+      <h2>Painel da colaboradora</h2>
+      <p class="lead">
+        Confira seus dados, escolha o tipo de registro e valide sua identidade
+        antes de registrar o ponto.
+      </p>
+
+      <div class="info-card" id="dados"></div>
+
+      <div class="clock-box">
+        <span class="clock-label">Horario atual</span>
+        <div class="relogio" id="agora"></div>
+      </div>
+    </section>
+
+    <section class="action-panel">
+      <h3>Registrar ponto</h3>
+      <p>Selecione a etapa da jornada e use a validacao facial para confirmar o registro.</p>
+
+      <div class="field">
+        <label for="tipoPonto">Tipo de registro</label>
+        <select id="tipoPonto">
+          <option value="entrada">Entrada</option>
+          <option value="saida_almoco">Saida Almoco</option>
+          <option value="volta_almoco">Volta Almoco</option>
+          <option value="saida">Saida Final</option>
+        </select>
+      </div>
+
+      <div class="camera-box">
+        <strong>Reconhecimento facial obrigatorio</strong>
+        <p>Posicione o rosto com boa iluminacao para validar sua identidade antes do registro.</p>
+
+        <div class="camera-frame">
+          <video id="video" autoplay muted></video>
+          <canvas id="canvas"></canvas>
+        </div>
+      </div>
+
+      <button id="btnRegistrar" class="submit-button" onclick="validarERegistrar()">Validar Face e Registrar Ponto</button>
+
+      <div id="mensagem"></div>
+    </section>
+  </div>
+</div>
+
+<script>
+let colaboradora = JSON.parse(localStorage.getItem("colaboradoraLogada") || "null");
+
+const video = document.getElementById("video");
+const canvas = document.getElementById("canvas");
+const btnRegistrar = document.getElementById("btnRegistrar");
+const msgDiv = document.getElementById("mensagem");
+const dadosDiv = document.getElementById("dados");
+const relogioDiv = document.getElementById("agora");
+
+if (!colaboradora || !colaboradora.cpf) {
+  window.location.href = "index.html";
+}
+
+function normalizeCpf(value) {
+  return String(value || "").replace(/\D/g, "");
+}
+
+function formatCpf(value) {
+  const cpf = normalizeCpf(value);
+  if (cpf.length !== 11) {
+    return cpf;
+  }
+
+  return cpf.replace(/(\d{3})(\d{3})(\d{3})(\d{2})/, "$1.$2.$3-$4");
+}
+
+function getLocalDateIso(date = new Date()) {
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, "0");
+  const day = String(date.getDate()).padStart(2, "0");
+  return `${year}-${month}-${day}`;
+}
+
+function getInitials(name) {
+  const parts = String(name || "").trim().split(/\s+/).filter(Boolean);
+  if (parts.length === 0) {
+    return "--";
+  }
+
+  return parts.slice(0, 2).map((part) => part[0].toUpperCase()).join("");
+}
+
+function setMensagem(texto, tipo = "") {
+  msgDiv.className = tipo;
+  msgDiv.textContent = texto;
+}
+
+function renderDados() {
+  const photoMarkup = colaboradora.foto_perfil
+    ? `<img class="profile-photo" src="${colaboradora.foto_perfil}" alt="Foto de ${colaboradora.nome}">`
+    : `<div class="profile-avatar">${getInitials(colaboradora.nome)}</div>`;
+
+  dadosDiv.innerHTML = `
+    <div class="profile-row">
+      ${photoMarkup}
+      <div>
+        <div><strong style="font-size:18px;">${colaboradora.nome}</strong></div>
+        <div style="color:rgba(232,217,195,0.82);">CPF: ${formatCpf(colaboradora.cpf)}</div>
+      </div>
+    </div>
+    <div style="color:rgba(232,217,195,0.82);">Horario: ${colaboradora.horario_inicio} - ${colaboradora.horario_saida}</div>
+    <div style="color:rgba(232,217,195,0.82);">Descanso: ${colaboradora.horario_descanso || "-"}</div>
+  `;
+}
+
+function atualizarRelogio() {
+  const agora = new Date();
+  relogioDiv.textContent = `${agora.toLocaleDateString("pt-BR")} ${agora.toLocaleTimeString("pt-BR")}`;
+}
+
+function stopCamera() {
+  if (!video.srcObject) {
+    return;
+  }
+
+  for (const track of video.srcObject.getTracks()) {
+    track.stop();
+  }
+
+  video.srcObject = null;
+}
+
+async function carregarColaboradoraAtual() {
+  const response = await fetch(`/api/colaboradoras/${encodeURIComponent(normalizeCpf(colaboradora.cpf))}`);
+
+  if (!response.ok) {
+    throw new Error("Colaboradora nao encontrada");
+  }
+
+  // Recebe os dados completos (incluindo foto e descritor)
+  const dadosCompletos = await response.json();
+  colaboradora = dadosCompletos;
+  
+  // Salva no localStorage APENAS os dados básicos para evitar QuotaExceededError
+  const dadosSimplificados = { ...dadosCompletos };
+  delete dadosSimplificados.foto_perfil;
+  localStorage.setItem("colaboradoraLogada", JSON.stringify(dadosSimplificados));
+  
+  renderDados();
+}
+
+async function initFaceApiAndCamera() {
+  setMensagem("Carregando modulos de seguranca...");
+  btnRegistrar.disabled = true;
+
+  await faceapi.nets.tinyFaceDetector.loadFromUri("/models");
+  await faceapi.nets.faceLandmark68Net.loadFromUri("/models");
+  await faceapi.nets.faceRecognitionNet.loadFromUri("/models");
+
+  const stream = await navigator.mediaDevices.getUserMedia({ video: true });
+  video.srcObject = stream;
+
+  setMensagem("Camera pronta. Posicione seu rosto.");
+  btnRegistrar.disabled = false;
+}
+
+async function bootstrap() {
+  try {
+    await carregarColaboradoraAtual();
+    atualizarRelogio();
+    setInterval(atualizarRelogio, 1000);
+    await initFaceApiAndCamera();
+  } catch (error) {
+    console.error(error);
+    setMensagem("Erro ao carregar dados ou acessar a camera.", "error");
+    btnRegistrar.disabled = true;
+  }
+}
+
+bootstrap();
+
+async function validarERegistrar() {
+  setMensagem("Validando identidade...");
+  btnRegistrar.disabled = true;
+
+  if (!colaboradora.face_descriptor) {
+    setMensagem("Erro: colaboradora sem biometria cadastrada. Contate o admin.", "error");
+    btnRegistrar.disabled = false;
+    return;
+  }
+
+  if (!video.videoWidth || !video.videoHeight) {
+    setMensagem("A camera ainda nao esta pronta. Tente novamente.", "error");
+    btnRegistrar.disabled = false;
+    return;
+  }
+
+  canvas.width = video.videoWidth;
+  canvas.height = video.videoHeight;
+  canvas.getContext("2d").drawImage(video, 0, 0);
+
+  const detection = await faceapi
+    .detectSingleFace(canvas, new faceapi.TinyFaceDetectorOptions())
+    .withFaceLandmarks()
+    .withFaceDescriptor();
+
+  if (!detection) {
+    setMensagem("Rosto nao detectado. Tente novamente.", "error");
+    btnRegistrar.disabled = false;
+    return;
+  }
+
+  const savedDescriptor = new Float32Array(colaboradora.face_descriptor);
+  const currentDescriptor = detection.descriptor;
+  const distance = faceapi.euclideanDistance(savedDescriptor, currentDescriptor);
+
+  if (distance < 0.5) {
+    setMensagem("Identidade confirmada! Registrando...", "success");
+    await registrarPonto();
+    return;
+  }
+
+  setMensagem("Reconhecimento falhou. Acesso negado.", "error");
+  btnRegistrar.disabled = false;
+}
+
+async function registrarPonto() {
+  const tipo = document.getElementById("tipoPonto").value;
+  const agora = new Date();
+  const horarioAtual = agora.toTimeString().slice(0, 5);
+  const dataAtual = getLocalDateIso(agora);
+
+  const registro = {
+    cpf: normalizeCpf(colaboradora.cpf),
+    tipo,
+    data: dataAtual,
+    hora: horarioAtual,
+  };
+
+  try {
+    const response = await fetch("/api/registrar-ponto", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(registro),
+    });
+
+    const resultado = await response.json();
+
+    if (!response.ok) {
+      setMensagem(resultado.mensagem || "Erro ao salvar registro no servidor.", "error");
+      btnRegistrar.disabled = false;
+      return;
+    }
+
+    setMensagem(resultado.mensagem, "success");
+    btnRegistrar.disabled = true;
+  } catch (error) {
+    console.error("Erro ao registrar ponto:", error);
+    setMensagem("Erro ao salvar registro no servidor.", "error");
+    btnRegistrar.disabled = false;
+  }
+}
+
+function logout() {
+  stopCamera();
+  localStorage.removeItem("colaboradoraLogada");
+  window.location.href = "index.html";
+}
+</script>
+
+</body>
+</html>

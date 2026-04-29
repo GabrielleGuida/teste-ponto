@@ -395,6 +395,16 @@ body{
   color:var(--wine);
 }
 
+.avatar-image{
+  width:44px;
+  height:44px;
+  border-radius:14px;
+  object-fit:cover;
+  display:block;
+  flex-shrink:0;
+  border:1px solid rgba(104,3,7,0.12);
+}
+
 .avatar.no-photo{
   background:rgba(104,3,7,0.08);
   color:var(--muted);
@@ -728,9 +738,9 @@ body{
       </div>
 
       <div class="metric-card">
-        <div class="metric-label">Foto facial</div>
+        <div class="metric-label">Com foto</div>
         <div class="metric-value" id="metricFotos">0</div>
-        <div class="metric-note" id="metricFotosNote">Prontas para reconhecimento</div>
+        <div class="metric-note" id="metricFotosNote">Cadastros com imagem salva</div>
       </div>
     </section>
 
@@ -842,6 +852,14 @@ function getInitials(name) {
   }
 
   return parts.slice(0, 2).map((part) => part[0].toUpperCase()).join("");
+}
+
+function getAvatarMarkup(colaboradora) {
+  if (colaboradora.foto_perfil) {
+    return `<img class="avatar-image" src="${colaboradora.foto_perfil}" alt="Foto de ${colaboradora.nome}">`;
+  }
+
+  return `<div class="avatar no-photo">${getInitials(colaboradora.nome)}</div>`;
 }
 
 function collectEvents(dia) {
@@ -1102,7 +1120,7 @@ function updateMetrics(items, selectedDate) {
     ? `${ausentes} ainda sem qualquer registro`
     : "Todas tiveram alguma movimentacao";
   document.getElementById("metricFotosNote").textContent = fotos > 0
-    ? `${fotos} prontas para reconhecimento facial`
+    ? `${fotos} cadastro(s) com imagem salva`
     : "Nenhuma foto configurada";
 
   document.getElementById("heroCoverage").textContent = `${cobertura}%`;
@@ -1187,7 +1205,7 @@ function renderTeam(items) {
       <article class="team-card" data-status="${status.key}">
         <div class="team-head">
           <div class="team-person">
-            <div class="avatar ${colaboradora.tem_foto ? "" : "no-photo"}">${getInitials(colaboradora.nome)}</div>
+            ${getAvatarMarkup(colaboradora)}
             <div>
               <div class="team-name">${colaboradora.nome}</div>
               <div class="muted">CPF ${formatCpf(colaboradora.cpf)}</div>

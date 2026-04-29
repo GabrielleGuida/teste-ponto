@@ -1,5 +1,6 @@
 const fs = require("fs");
 const path = require("path");
+const crypto = require("node:crypto");
 const { DatabaseSync } = require("node:sqlite");
 
 const DATA_DIR = path.join(__dirname, "data");
@@ -20,6 +21,9 @@ const DEFAULT_SCHEDULE = {
   horario_descanso: "12:00-13:00",
 };
 
+const PASSWORD_KEY_LENGTH = 64;
+const PASSWORD_SALT_BYTES = 16;
+
 fs.mkdirSync(DATA_DIR, { recursive: true });
 
 const db = new DatabaseSync(DB_PATH);
@@ -36,6 +40,10 @@ function normalizeTime(value) {
 function normalizeDate(value) {
   const text = String(value ?? "").trim();
   return /^\d{4}-\d{2}-\d{2}$/.test(text) ? text : "";
+}
+
+function normalizePassword(value) {
+  return String(value ?? "").trim();
 }
 
 function safeJsonParse(filePath, fallback) {
@@ -56,6 +64,11 @@ function serializeFaceDescriptor(faceDescriptor) {
     : null;
 }
 
+function normalizePhotoDataUrl(value) {
+  const text = String(value ?? "").trim();
+  return /^data:image\/[a-zA-Z0-9.+-]+;base64,/.test(text) ? text : null;
+}
+
 function deserializeFaceDescriptor(value) {
   if (!value) {
     return undefined;
@@ -69,6 +82,36 @@ function deserializeFaceDescriptor(value) {
   }
 }
 
+function hashPassword(password) {
+  const normalized = normalizePassword(password);
+  if (!normalized) {
+    return null;
+  }
+
+  const salt = crypto.randomBytes(PASSWORD_SALT_BYTES).toString("hex");
+  const hash = crypto.scryptSync(normalized, salt, PASSWORD_KEY_LENGTH).toString("hex");
+  return `scrypt$${salt}$${hash}`;
+}
+
+function verifyPassword(password, storedHash) {
+  const normalized = normalizePassword(password);
+  const text = String(storedHash ?? "");
+  const [algorithm, salt, expectedHash] = text.split("$");
+
+  if (!normalized || algorithm !== "scrypt" || !salt || !expectedHash) {
+    return false;
+  }
+
+  const derivedHash = crypto.scryptSync(normalized, salt, PASSWORD_KEY_LENGTH);
+  const expectedBuffer = Buffer.from(expectedHash, "hex");
+
+  if (derivedHash.length !== expectedBuffer.length) {
+    return false;
+  }
+
+  return crypto.timingSafeEqual(derivedHash, expectedBuffer);
+}
+
 function mapColaboradora(row, { includeFaceDescriptor = false } = {}) {
   if (!row) {
     return null;
@@ -80,7 +123,9 @@ function mapColaboradora(row, { includeFaceDescriptor = false } = {}) {
     horario_inicio: row.horario_inicio,
     horario_saida: row.horario_saida,
     horario_descanso: row.horario_descanso,
-    tem_foto: Boolean(row.face_descriptor),
+    tem_foto: Boolean(row.foto_perfil),
+    tem_senha: Boolean(row.senha_hash),
+    foto_perfil: row.foto_perfil || "",
   };
 
   if (includeFaceDescriptor) {
@@ -168,7 +213,9 @@ function initializeSchema() {
       horario_inicio TEXT NOT NULL,
       horario_saida TEXT NOT NULL,
       horario_descanso TEXT NOT NULL,
+      senha_hash TEXT,
       face_descriptor TEXT,
+      foto_perfil TEXT,
       created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
       updated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
     );
@@ -191,6 +238,20 @@ function initializeSchema() {
   `);
 }
 
+function ensureOptionalSchema() {
+  const colaboradoraColumns = db.prepare("PRAGMA table_info(colaboradoras)").all();
+  const hasFotoPerfil = colaboradoraColumns.some((column) => column.name === "foto_perfil");
+  const hasSenhaHash = colaboradoraColumns.some((column) => column.name === "senha_hash");
+
+  if (!hasFotoPerfil) {
+    db.exec("ALTER TABLE colaboradoras ADD COLUMN foto_perfil TEXT");
+  }
+
+  if (!hasSenhaHash) {
+    db.exec("ALTER TABLE colaboradoras ADD COLUMN senha_hash TEXT");
+  }
+}
+
 function migrateLegacyDataIfNeeded() {
   if (getMeta("legacy_import_completed")) {
     return;
@@ -203,15 +264,17 @@ function migrateLegacyDataIfNeeded() {
       horario_inicio,
       horario_saida,
       horario_descanso,
-      face_descriptor
+      face_descriptor,
+      foto_perfil
     )
-    VALUES (?, ?, ?, ?, ?, ?)
+    VALUES (?, ?, ?, ?, ?, ?, ?)
     ON CONFLICT(cpf) DO UPDATE SET
       nome = excluded.nome,
       horario_inicio = excluded.horario_inicio,
       horario_saida = excluded.horario_saida,
       horario_descanso = excluded.horario_descanso,
       face_descriptor = COALESCE(excluded.face_descriptor, colaboradoras.face_descriptor),
+      foto_perfil = COALESCE(excluded.foto_perfil, colaboradoras.foto_perfil),
       updated_at = CURRENT_TIMESTAMP
   `);
 
@@ -257,6 +320,7 @@ function migrateLegacyDataIfNeeded() {
         defaults.horario_saida,
         defaults.horario_descanso,
         serializeFaceDescriptor(colaboradora?.face_descriptor),
+        normalizePhotoDataUrl(colaboradora?.foto_perfil),
       );
     }
 
@@ -277,6 +341,7 @@ function migrateLegacyDataIfNeeded() {
           defaults.horario_inicio,
           defaults.horario_saida,
           defaults.horario_descanso,
+          null,
           null,
         );
       }
@@ -313,7 +378,9 @@ function findRawColaboradoraByCpf(cpf) {
       horario_inicio,
       horario_saida,
       horario_descanso,
-      face_descriptor
+      senha_hash,
+      face_descriptor,
+      foto_perfil
     FROM colaboradoras
     WHERE cpf = ?
   `).get(normalizeCpf(cpf));
@@ -327,7 +394,9 @@ function listColaboradoras({ includeFaceDescriptor = false } = {}) {
       horario_inicio,
       horario_saida,
       horario_descanso,
-      face_descriptor
+      senha_hash,
+      face_descriptor,
+      foto_perfil
     FROM colaboradoras
     ORDER BY nome COLLATE NOCASE
   `).all();
@@ -347,12 +416,16 @@ function upsertColaboradora(payload) {
   const horario_saida = normalizeTime(payload?.horario_saida);
   const horario_descanso = String(payload?.horario_descanso ?? "").trim();
 
+  const existing = findRawColaboradoraByCpf(cpf);
+  const senha = normalizePassword(payload?.senha);
+
   if (!cpf || !nome || !horario_inicio || !horario_saida || !horario_descanso) {
     throw new Error("INVALID_COLABORADORA_PAYLOAD");
   }
 
-  const existing = findRawColaboradoraByCpf(cpf);
+  const senhaHash = senha ? hashPassword(senha) : null;
   const faceDescriptor = serializeFaceDescriptor(payload?.face_descriptor);
+  const fotoPerfil = normalizePhotoDataUrl(payload?.foto_perfil);
 
   db.prepare(`
     INSERT INTO colaboradoras (
@@ -361,15 +434,19 @@ function upsertColaboradora(payload) {
       horario_inicio,
       horario_saida,
       horario_descanso,
-      face_descriptor
+      senha_hash,
+      face_descriptor,
+      foto_perfil
     )
-    VALUES (?, ?, ?, ?, ?, ?)
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?)
     ON CONFLICT(cpf) DO UPDATE SET
       nome = excluded.nome,
       horario_inicio = excluded.horario_inicio,
       horario_saida = excluded.horario_saida,
       horario_descanso = excluded.horario_descanso,
+      senha_hash = COALESCE(excluded.senha_hash, colaboradoras.senha_hash),
       face_descriptor = COALESCE(excluded.face_descriptor, colaboradoras.face_descriptor),
+      foto_perfil = COALESCE(excluded.foto_perfil, colaboradoras.foto_perfil),
       updated_at = CURRENT_TIMESTAMP
   `).run(
     nome,
@@ -377,12 +454,62 @@ function upsertColaboradora(payload) {
     horario_inicio,
     horario_saida,
     horario_descanso,
+    senhaHash,
     faceDescriptor,
+    fotoPerfil,
   );
 
   return {
     isUpdate: Boolean(existing),
     colaboradora: findColaboradoraByCpf(cpf, { includeFaceDescriptor: true }),
+  };
+}
+
+function authenticateColaboradora(payload) {
+  const cpf = normalizeCpf(payload?.cpf);
+  const senha = normalizePassword(payload?.senha);
+
+  if (!cpf || !senha) {
+    throw new Error("INVALID_LOGIN_PAYLOAD");
+  }
+
+  const colaboradora = findRawColaboradoraByCpf(cpf);
+  if (!colaboradora) {
+    return { notFound: true };
+  }
+
+  if (!colaboradora.senha_hash) {
+    return { missingPassword: true };
+  }
+
+  if (!verifyPassword(senha, colaboradora.senha_hash)) {
+    return { invalidPassword: true };
+  }
+
+  return {
+    colaboradora: findColaboradoraByCpf(cpf, { includeFaceDescriptor: true }),
+  };
+}
+
+function deleteColaboradora(cpf) {
+  const normalizedCpf = normalizeCpf(cpf);
+  if (!normalizedCpf) {
+    throw new Error("INVALID_CPF");
+  }
+
+  const colaboradora = findRawColaboradoraByCpf(normalizedCpf);
+  if (!colaboradora) {
+    return { notFound: true };
+  }
+
+  db.prepare(`
+    DELETE FROM colaboradoras
+    WHERE cpf = ?
+  `).run(normalizedCpf);
+
+  return {
+    notFound: false,
+    colaboradora: mapColaboradora(colaboradora),
   };
 }
 
@@ -519,10 +646,13 @@ function getAllReports() {
 }
 
 initializeSchema();
+ensureOptionalSchema();
 migrateLegacyDataIfNeeded();
 
 module.exports = {
+  authenticateColaboradora,
   DB_PATH,
+  deleteColaboradora,
   findColaboradoraByCpf,
   getAllReports,
   getColaboradorReport,

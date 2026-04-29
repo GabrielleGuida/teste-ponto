@@ -1,7 +1,9 @@
 const express = require("express");
 const path = require("path");
 const {
+  authenticateColaboradora,
   DB_PATH,
+  deleteColaboradora,
   findColaboradoraByCpf,
   getAllReports,
   getColaboradorReport,
@@ -47,6 +49,58 @@ app.get("/api/colaboradoras/:cpf", (req, res) => {
   return res.json(colaboradora);
 });
 
+app.delete("/api/colaboradoras/:cpf", (req, res) => {
+  try {
+    const resultado = deleteColaboradora(req.params.cpf);
+
+    if (resultado.notFound) {
+      return res.status(404).json({ mensagem: "Colaboradora nao encontrada." });
+    }
+
+    return res.json({
+      mensagem: "Colaboradora apagada com sucesso!",
+      colaboradora: resultado.colaboradora,
+    });
+  } catch (error) {
+    if (error.message === "INVALID_CPF") {
+      return res.status(400).json({ mensagem: "Informe um CPF valido para apagar a colaboradora." });
+    }
+
+    console.error("Erro ao apagar colaboradora:", error);
+    return res.status(500).json({ mensagem: "Erro interno ao apagar colaboradora." });
+  }
+});
+
+app.post("/api/login-colaboradora", (req, res) => {
+  try {
+    const resultado = authenticateColaboradora(req.body);
+
+    if (resultado.notFound || resultado.invalidPassword) {
+      return res.status(401).json({ mensagem: "CPF ou senha invalidos." });
+    }
+
+    if (resultado.missingPassword) {
+      return res.status(403).json({
+        mensagem: "Esta colaboradora ainda nao possui senha cadastrada. Solicite o cadastro da senha ao admin.",
+      });
+    }
+
+    return res.json({
+      mensagem: "Login realizado com sucesso!",
+      colaboradora: resultado.colaboradora,
+    });
+  } catch (error) {
+    if (error.message === "INVALID_LOGIN_PAYLOAD") {
+      return res.status(400).json({
+        mensagem: "Informe CPF e senha validos para entrar.",
+      });
+    }
+
+    console.error("Erro ao autenticar colaboradora:", error);
+    return res.status(500).json({ mensagem: "Erro interno ao autenticar colaboradora." });
+  }
+});
+
 app.post(["/api/cadastrar-colaboradora", "/cadastrar-colaboradora"], (req, res) => {
   try {
     const resultado = upsertColaboradora(req.body);
@@ -59,7 +113,7 @@ app.post(["/api/cadastrar-colaboradora", "/cadastrar-colaboradora"], (req, res) 
   } catch (error) {
     if (error.message === "INVALID_COLABORADORA_PAYLOAD") {
       return res.status(400).json({
-        mensagem: "Preencha nome, CPF, horario de inicio, horario de saida e descanso.",
+        mensagem: "Preencha nome, CPF, senha, horario de inicio, horario de saida e descanso.",
       });
     }
 
