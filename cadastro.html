@@ -26,8 +26,8 @@ body{
   padding:35px;
   border-radius:12px;
   box-shadow:0 15px 35px rgba(0,0,0,0.2);
-  max-height: 95vh;
-  overflow-y: auto;
+  max-height:95vh;
+  overflow-y:auto;
 }
 
 .top-bar{
@@ -43,12 +43,27 @@ h2{
   color:#333;
 }
 
+.titulo-wrap{
+  display:flex;
+  flex-direction:column;
+  gap:4px;
+}
+
+.modo-badge{
+  display:none;
+  font-size:11px;
+  font-weight:500;
+  letter-spacing:0.04em;
+  text-transform:uppercase;
+  color:#680307;
+}
+
 .voltar{
   background:#9e9e9e;
   border:none;
   color:#e8d9c3;
   padding:6px 12px;
-  margin-left: 20px;
+  margin-left:20px;
   border-radius:6px;
   cursor:pointer;
   font-size:12px;
@@ -59,6 +74,13 @@ h2{
 }
 
 .input-group{ margin-bottom:18px; }
+
+.field-note{
+  margin-top:8px;
+  font-size:12px;
+  color:#555;
+  display:none;
+}
 
 input{
   width:100%;
@@ -74,32 +96,62 @@ input:focus{
   border-bottom:2px solid #680307;
 }
 
-.camera-container {
-  text-align: center;
-  margin-bottom: 18px;
+input[readonly]{
+  background:#f2ece4;
+  color:#666;
+  cursor:not-allowed;
 }
 
-#video {
-  width: 100%;
-  border-radius: 8px;
-  background: #000;
-  display: none;
+.camera-container{
+  text-align:center;
+  margin-bottom:18px;
 }
 
-#canvas {
-  display: none;
+.camera-hint{
+  margin:0 0 10px;
+  font-size:12px;
+  color:#555;
 }
 
-#photo-preview {
-  width: 100%;
-  border-radius: 8px;
-  margin-top: 10px;
-  display: none;
+.photo-actions{
+  display:grid;
+  gap:10px;
+  margin-top:10px;
 }
 
-.btn-camera {
-  background: #680307;
-  margin-bottom: 10px;
+#video{
+  width:100%;
+  border-radius:8px;
+  background:#000;
+  display:none;
+}
+
+#canvas{
+  display:none;
+}
+
+#photo-preview{
+  width:100%;
+  border-radius:8px;
+  margin-top:10px;
+  display:none;
+}
+
+.btn-camera{
+  background:#680307;
+  margin-bottom:10px;
+}
+
+.btn-upload{
+  background:#8b5e34;
+}
+
+.btn-upload:hover{
+  background:#734c29;
+}
+
+#foto-upload{
+  display:none;
 }
 
 button{
@@ -120,9 +172,9 @@ button:hover{
   transform:translateY(-2px);
 }
 
-button:disabled {
-  background: #ccc;
-  cursor: not-allowed;
+button:disabled{
+  background:#ccc;
+  cursor:not-allowed;
 }
 
 .mensagem{
@@ -136,18 +188,21 @@ button:disabled {
 <div class="card">
 
 <div class="top-bar">
-  <h2>Cadastro</h2>
+  <div class="titulo-wrap">
+    <h2 id="tituloPagina">Cadastro</h2>
+    <span class="modo-badge" id="modoBadge">Modo edicao</span>
+  </div>
   <button class="voltar" onclick="voltar()">Voltar</button>
 </div>
 
 <form id="formCadastro">
-
   <div class="input-group">
     <input type="text" id="nome" placeholder="Nome completo" required>
   </div>
 
   <div class="input-group">
     <input type="text" id="cpf" placeholder="CPF" required>
+    <div class="field-note" id="cpfEditHint">O CPF fica bloqueado na edicao para atualizar o cadastro correto.</div>
   </div>
 
   <div class="input-group">
@@ -163,16 +218,20 @@ button:disabled {
   </div>
 
   <div class="camera-container">
-    <label style="display:block; margin-bottom:10px; font-size:14px;">Foto para Reconhecimento Facial</label>
+    <label style="display:block; margin-bottom:10px; font-size:14px;">Foto para reconhecimento facial (opcional)</label>
+    <p class="camera-hint">Voce pode tirar a foto na hora ou anexar uma imagem do dispositivo. Se preferir, tambem pode salvar sem foto.</p>
     <video id="video" autoplay muted></video>
     <canvas id="canvas"></canvas>
     <img id="photo-preview" src="" alt="Preview">
-    <button type="button" id="btn-iniciar-camera" class="btn-camera">Iniciar Câmera</button>
-    <button type="button" id="btn-capturar" class="btn-camera" style="display:none;">Capturar Foto</button>
+    <input type="file" id="foto-upload" accept="image/*">
+    <div class="photo-actions">
+      <button type="button" id="btn-iniciar-camera" class="btn-camera">Tirar Foto na Camera</button>
+      <button type="button" id="btn-selecionar-foto" class="btn-camera btn-upload">Anexar Imagem do Dispositivo</button>
+      <button type="button" id="btn-capturar" class="btn-camera" style="display:none;">Capturar Foto</button>
+    </div>
   </div>
 
   <button type="submit" id="btn-salvar">Salvar Colaboradora</button>
-
 </form>
 
 <div class="mensagem" id="mensagem"></div>
@@ -181,111 +240,282 @@ button:disabled {
 
 <script>
 let faceDescriptor = null;
-const video = document.getElementById('video');
-const canvas = document.getElementById('canvas');
-const photoPreview = document.getElementById('photo-preview');
-const btnIniciar = document.getElementById('btn-iniciar-camera');
-const btnCapturar = document.getElementById('btn-capturar');
-const btnSalvar = document.getElementById('btn-salvar');
+let editCpf = null;
 
-// Carregar modelos do face-api
-async function loadModels() {
-  await faceapi.nets.tinyFaceDetector.loadFromUri('/models');
-  await faceapi.nets.faceLandmark68Net.loadFromUri('/models');
-  await faceapi.nets.faceRecognitionNet.loadFromUri('/models');
-  console.log("Modelos carregados");
+const formCadastro = document.getElementById("formCadastro");
+const mensagem = document.getElementById("mensagem");
+const video = document.getElementById("video");
+const canvas = document.getElementById("canvas");
+const photoPreview = document.getElementById("photo-preview");
+const fotoUpload = document.getElementById("foto-upload");
+const btnIniciar = document.getElementById("btn-iniciar-camera");
+const btnSelecionarFoto = document.getElementById("btn-selecionar-foto");
+const btnCapturar = document.getElementById("btn-capturar");
+const tituloPagina = document.getElementById("tituloPagina");
+const modoBadge = document.getElementById("modoBadge");
+const cpfInput = document.getElementById("cpf");
+const cpfEditHint = document.getElementById("cpfEditHint");
+const btnSalvar = document.getElementById("btn-salvar");
+
+function normalizeCpf(value) {
+  return String(value || "").replace(/\D/g, "");
 }
 
-loadModels();
+function setMensagem(texto, cor) {
+  mensagem.style.color = cor;
+  mensagem.textContent = texto;
+}
 
-btnIniciar.addEventListener('click', async () => {
-  try {
-    const stream = await navigator.mediaDevices.getUserMedia({ video: true });
-    video.srcObject = stream;
-    video.style.display = 'block';
-    photoPreview.style.display = 'none';
-    btnIniciar.style.display = 'none';
-    btnCapturar.style.display = 'block';
-  } catch (err) {
-    alert("Erro ao acessar a câmera: " + err);
-  }
-});
-
-btnCapturar.addEventListener('click', async () => {
-  canvas.width = video.videoWidth;
-  canvas.height = video.videoHeight;
-  canvas.getContext('2d').drawImage(video, 0, 0);
-  
-  const dataUrl = canvas.toDataURL('image/jpeg');
-  photoPreview.src = dataUrl;
-  photoPreview.style.display = 'block';
-  video.style.display = 'none';
-  btnCapturar.style.display = 'none';
-  btnIniciar.textContent = "Tirar outra foto";
-  btnIniciar.style.display = 'block';
-
-  // Extrair descritor facial
-  document.getElementById("mensagem").textContent = "Processando rosto...";
-  const detection = await faceapi.detectSingleFace(canvas, new faceapi.TinyFaceDetectorOptions()).withFaceLandmarks().withFaceDescriptor();
-  
-  if (detection) {
-    faceDescriptor = Array.from(detection.descriptor);
-    document.getElementById("mensagem").style.color = "green";
-    document.getElementById("mensagem").textContent = "Rosto detectado com sucesso!";
-  } else {
-    faceDescriptor = null;
-    document.getElementById("mensagem").style.color = "red";
-    document.getElementById("mensagem").textContent = "Nenhum rosto detectado. Tente novamente.";
-  }
-});
-
-document.getElementById("formCadastro").addEventListener("submit", async function(e){
-  e.preventDefault();
-
-  if (!faceDescriptor) {
-    alert("Por favor, capture uma foto com um rosto visível antes de salvar.");
+function stopCamera() {
+  if (!video.srcObject) {
     return;
   }
 
+  for (const track of video.srcObject.getTracks()) {
+    track.stop();
+  }
+
+  video.srcObject = null;
+}
+
+function resetPhotoState() {
+  faceDescriptor = null;
+  photoPreview.src = "";
+  photoPreview.style.display = "none";
+  video.style.display = "none";
+  btnCapturar.style.display = "none";
+  btnIniciar.style.display = "block";
+  btnIniciar.textContent = "Tirar Foto na Camera";
+}
+
+function showPreview(dataUrl) {
+  photoPreview.src = dataUrl;
+  photoPreview.style.display = "block";
+  video.style.display = "none";
+}
+
+function readFileAsDataUrl(file) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve(reader.result);
+    reader.onerror = () => reject(new Error("Nao foi possivel ler a imagem selecionada."));
+    reader.readAsDataURL(file);
+  });
+}
+
+function waitForImageLoad(image) {
+  return new Promise((resolve, reject) => {
+    if (image.complete && image.naturalWidth > 0) {
+      resolve();
+      return;
+    }
+
+    image.onload = () => resolve();
+    image.onerror = () => reject(new Error("A imagem selecionada nao pode ser carregada."));
+  });
+}
+
+async function detectFaceFromElement(element) {
+  const modelsReady = await modelsReadyPromise;
+  if (!modelsReady) {
+    return false;
+  }
+
+  setMensagem("Processando rosto...", "#555");
+
+  const detection = await faceapi
+    .detectSingleFace(element, new faceapi.TinyFaceDetectorOptions())
+    .withFaceLandmarks()
+    .withFaceDescriptor();
+
+  if (detection) {
+    faceDescriptor = Array.from(detection.descriptor);
+    setMensagem("Rosto detectado com sucesso!", "green");
+    return true;
+  }
+
+  faceDescriptor = null;
+  setMensagem("Nenhum rosto detectado. Voce ainda pode salvar sem foto ou tentar novamente.", "red");
+  return false;
+}
+
+function setEditMode(colaboradora) {
+  editCpf = normalizeCpf(colaboradora.cpf);
+  tituloPagina.textContent = "Editar Cadastro";
+  modoBadge.style.display = "inline";
+  cpfInput.value = colaboradora.cpf || "";
+  cpfInput.readOnly = true;
+  cpfEditHint.style.display = "block";
+  btnSalvar.textContent = "Salvar Alteracoes";
+
+  document.getElementById("nome").value = colaboradora.nome || "";
+  document.getElementById("inicio").value = colaboradora.horario_inicio || "";
+  document.getElementById("saida").value = colaboradora.horario_saida || "";
+  document.getElementById("descanso").value = colaboradora.horario_descanso || "";
+
+  if (colaboradora.tem_foto) {
+    setMensagem("Cadastro carregado. Esta colaboradora ja possui foto facial salva. Envie uma nova apenas se quiser substituir.", "#555");
+    return;
+  }
+
+  setMensagem("Cadastro carregado. Voce pode atualizar os dados e, se quiser, anexar uma foto.", "#555");
+}
+
+async function carregarCadastroParaEdicao() {
+  const params = new URLSearchParams(window.location.search);
+  const cpf = normalizeCpf(params.get("cpf"));
+
+  if (!cpf) {
+    return;
+  }
+
+  try {
+    const response = await fetch(`/api/colaboradoras/${encodeURIComponent(cpf)}`);
+
+    if (!response.ok) {
+      setMensagem("Nao foi possivel carregar o cadastro para edicao.", "red");
+      return;
+    }
+
+    const colaboradora = await response.json();
+    setEditMode(colaboradora);
+  } catch (error) {
+    console.error("Erro ao carregar cadastro para edicao:", error);
+    setMensagem("Erro ao buscar os dados da colaboradora para edicao.", "red");
+  }
+}
+
+async function loadModels() {
+  try {
+    await faceapi.nets.tinyFaceDetector.loadFromUri("/models");
+    await faceapi.nets.faceLandmark68Net.loadFromUri("/models");
+    await faceapi.nets.faceRecognitionNet.loadFromUri("/models");
+    return true;
+  } catch (error) {
+    console.error("Erro ao carregar modelos:", error);
+    setMensagem("Nao foi possivel carregar os modelos faciais.", "red");
+    return false;
+  }
+}
+
+const modelsReadyPromise = loadModels();
+
+btnIniciar.addEventListener("click", async () => {
+  try {
+    stopCamera();
+    resetPhotoState();
+    const stream = await navigator.mediaDevices.getUserMedia({ video: true });
+    video.srcObject = stream;
+    video.style.display = "block";
+    btnIniciar.style.display = "none";
+    btnCapturar.style.display = "block";
+    setMensagem("Camera iniciada. Posicione o rosto e capture a foto.", "#555");
+  } catch (error) {
+    alert("Erro ao acessar a camera: " + error.message);
+  }
+});
+
+btnSelecionarFoto.addEventListener("click", () => {
+  stopCamera();
+  resetPhotoState();
+  fotoUpload.value = "";
+  fotoUpload.click();
+});
+
+fotoUpload.addEventListener("change", async (event) => {
+  const [file] = event.target.files || [];
+  if (!file) {
+    return;
+  }
+
+  try {
+    stopCamera();
+    resetPhotoState();
+    const dataUrl = await readFileAsDataUrl(file);
+    showPreview(dataUrl);
+    await waitForImageLoad(photoPreview);
+    await detectFaceFromElement(photoPreview);
+  } catch (error) {
+    console.error("Erro ao processar imagem enviada:", error);
+    faceDescriptor = null;
+    setMensagem(error.message || "Nao foi possivel processar a imagem selecionada.", "red");
+  }
+});
+
+btnCapturar.addEventListener("click", async () => {
+  if (!video.videoWidth || !video.videoHeight) {
+    setMensagem("A camera ainda nao esta pronta. Tente novamente.", "red");
+    return;
+  }
+
+  canvas.width = video.videoWidth;
+  canvas.height = video.videoHeight;
+  canvas.getContext("2d").drawImage(video, 0, 0);
+
+  const dataUrl = canvas.toDataURL("image/jpeg");
+  showPreview(dataUrl);
+  btnCapturar.style.display = "none";
+  btnIniciar.textContent = "Tirar Outra Foto na Camera";
+  btnIniciar.style.display = "block";
+  await detectFaceFromElement(canvas);
+  stopCamera();
+});
+
+formCadastro.addEventListener("submit", async (event) => {
+  event.preventDefault();
+
   const nova = {
-    nome: document.getElementById("nome").value,
-    cpf: document.getElementById("cpf").value,
+    nome: document.getElementById("nome").value.trim(),
+    cpf: editCpf || normalizeCpf(document.getElementById("cpf").value),
     horario_inicio: document.getElementById("inicio").value,
     horario_saida: document.getElementById("saida").value,
-    horario_descanso: document.getElementById("descanso").value,
-    face_descriptor: faceDescriptor // Salvando o descritor facial
+    horario_descanso: document.getElementById("descanso").value.trim(),
+    ...(faceDescriptor ? { face_descriptor: faceDescriptor } : {}),
   };
 
   try {
-    const response = await fetch("/cadastrar-colaboradora", {
+    const response = await fetch("/api/cadastrar-colaboradora", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(nova)
+      body: JSON.stringify(nova),
     });
 
     const resultado = await response.json();
 
-    if(response.ok){
-      document.getElementById("mensagem").style.color = "green";
-      document.getElementById("mensagem").textContent = resultado.mensagem;
-      document.getElementById("formCadastro").reset();
-      photoPreview.style.display = 'none';
-      faceDescriptor = null;
-    } else {
-      document.getElementById("mensagem").style.color = "red";
-      document.getElementById("mensagem").textContent = resultado.mensagem;
+    if (!response.ok) {
+      setMensagem(resultado.mensagem || "Nao foi possivel salvar a colaboradora.", "red");
+      return;
     }
 
-  } catch(error){
-    document.getElementById("mensagem").style.color = "red";
-    document.getElementById("mensagem").textContent = "Erro ao conectar com servidor.";
-  }
+    if (editCpf) {
+      setMensagem(resultado.mensagem, "green");
+      stopCamera();
+      resetPhotoState();
+      cpfInput.value = editCpf;
+      cpfInput.readOnly = true;
+      cpfEditHint.style.display = "block";
+      btnSalvar.textContent = "Salvar Alteracoes";
+      tituloPagina.textContent = "Editar Cadastro";
+      modoBadge.style.display = "inline";
+      return;
+    }
 
+    setMensagem(resultado.mensagem, "green");
+    formCadastro.reset();
+    stopCamera();
+    resetPhotoState();
+  } catch (error) {
+    console.error("Erro ao cadastrar colaboradora:", error);
+    setMensagem("Erro ao conectar com o servidor.", "red");
+  }
 });
 
-function voltar(){
+function voltar() {
+  stopCamera();
   window.location.href = "admin.html";
 }
+
+carregarCadastroParaEdicao();
 </script>
 
 </body>

@@ -2,286 +2,1273 @@
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8">
-<title>Dashboard - Monitoramento</title>
+<title>Dashboard Operacional</title>
 
-<link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
 <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
 
 <style>
+:root{
+  --wine:#680307;
+  --wine-dark:#4d0205;
+  --sand:#e8d9c3;
+  --paper:#fffaf4;
+  --ink:#2b2a28;
+  --muted:#6f655f;
+  --line:rgba(104,3,7,0.12);
+  --card-shadow:0 18px 40px rgba(60,28,18,0.12);
+  --success-bg:#e7f6ea;
+  --success-text:#1f7a39;
+  --warning-bg:#fff4df;
+  --warning-text:#9a6217;
+  --danger-bg:#fde9e7;
+  --danger-text:#b33a2f;
+  --info-bg:#e4eefc;
+  --info-text:#215fa5;
+  --neutral-bg:#ece7e1;
+  --neutral-text:#655d58;
+}
+
+*{
+  box-sizing:border-box;
+}
+
 body{
   margin:0;
   font-family:'Roboto', sans-serif;
-  background:#f5f5f5;
+  color:var(--ink);
+  background:
+    radial-gradient(circle at top left, rgba(232,217,195,0.95), transparent 26%),
+    linear-gradient(180deg, #f4ece4 0%, #fbf8f3 32%, #f4efe8 100%);
+}
+
+.page-shell{
+  min-height:100vh;
+  padding:28px;
 }
 
 .header{
-  background:#680307;
-  color:#e8d9c3;
-  padding:20px;
-  font-size:20px;
   display:flex;
   justify-content:space-between;
-  align-items:center;
+  align-items:flex-start;
+  gap:20px;
+  margin-bottom:22px;
 }
 
-.container{
-  padding:30px;
-}
-
-.top-bar{
+.header-left{
   display:flex;
-  justify-content:space-between;
-  margin-bottom:20px;
-  flex-wrap:wrap;
-  gap:15px;
+  gap:16px;
+  align-items:flex-start;
 }
 
-.metrics{
-  display:flex;
-  gap:15px;
-  flex-wrap:wrap;
+.header-copy h1{
+  margin:4px 0 8px;
+  font-size:34px;
+  font-weight:700;
 }
 
-.metric-card{
-  background:#e8d9c3;
-  padding:15px 20px;
-  border-radius:10px;
-  box-shadow:0 4px 12px rgba(0,0,0,0.08);
-  min-width:150px;
+.header-copy p{
+  margin:0;
+  color:var(--muted);
+  max-width:740px;
+  line-height:1.55;
 }
 
-.metric-title{
+.eyebrow{
+  display:inline-block;
+  padding:6px 12px;
+  border-radius:999px;
+  background:rgba(104,3,7,0.08);
+  color:var(--wine);
   font-size:12px;
-  color:#777;
+  font-weight:700;
+  letter-spacing:0.08em;
+  text-transform:uppercase;
 }
 
-.metric-value{
-  font-size:20px;
-  font-weight:500;
+.header-actions{
+  display:flex;
+  gap:12px;
+  flex-wrap:wrap;
 }
 
-input[type="date"]{
-  padding:8px;
-  border-radius:6px;
-  border:1px solid #ccc;
-}
-
-.grid{
-  display:grid;
-  grid-template-columns:repeat(auto-fill,minmax(280px,1fr));
+.content{
+  display:flex;
+  flex-direction:column;
   gap:20px;
 }
 
-.card{
-  background:#e8d9c3;
-  padding:20px;
-  border-radius:12px;
-  box-shadow:0 8px 20px rgba(0,0,0,0.08);
-  position:relative;
+.panel{
+  background:rgba(255,250,244,0.9);
+  border:1px solid rgba(255,255,255,0.72);
+  border-radius:24px;
+  box-shadow:var(--card-shadow);
+  backdrop-filter:blur(10px);
 }
 
-.nome{
-  font-weight:500;
-  font-size:16px;
+.hero{
+  padding:28px;
+  display:grid;
+  grid-template-columns:2fr 1fr;
+  gap:20px;
+  background:
+    linear-gradient(135deg, rgba(104,3,7,0.94), rgba(132,25,29,0.92)),
+    rgba(255,255,255,0.08);
+  color:var(--sand);
 }
 
-.status{
-  font-size:13px;
-  font-weight:500;
-  padding:6px 10px;
+.hero h2{
+  margin:0 0 10px;
+  font-size:30px;
+}
+
+.hero p{
+  margin:0;
+  line-height:1.6;
+  color:rgba(232,217,195,0.88);
+}
+
+.hero-summary{
+  display:grid;
+  gap:14px;
+  align-content:start;
+}
+
+.hero-box{
+  background:rgba(255,255,255,0.1);
+  border:1px solid rgba(255,255,255,0.14);
   border-radius:20px;
-  display:inline-block;
-  margin:8px 0;
+  padding:16px 18px;
 }
 
-.presente{ background:#e8f5e9; color:#2e7d32; }
-.atrasado{ background:#fff3e0; color:#ef6c00; }
-.ausente{ background:#ffebee; color:#c62828; }
-
-.online-dot{
-  width:10px;
-  height:10px;
-  background:#00e676;
-  border-radius:50%;
-  position:absolute;
-  top:15px;
-  right:15px;
-  animation:blink 1s infinite;
-}
-
-@keyframes blink{
-  0%{opacity:1;}
-  50%{opacity:0.3;}
-  100%{opacity:1;}
-}
-
-.info{
+.hero-box strong{
+  display:block;
   font-size:13px;
-  color:#555;
+  letter-spacing:0.05em;
+  text-transform:uppercase;
+  opacity:0.8;
+  margin-bottom:8px;
 }
 
-.alert{
-  color:#c62828;
+.hero-box span{
+  font-size:24px;
+  font-weight:700;
+}
+
+.toolbar{
+  padding:22px 24px;
+  display:flex;
+  justify-content:space-between;
+  align-items:flex-end;
+  gap:20px;
+  flex-wrap:wrap;
+}
+
+.toolbar-copy{
+  display:grid;
+  gap:6px;
+}
+
+.toolbar-copy strong{
+  font-size:18px;
+}
+
+.toolbar-copy span{
+  color:var(--muted);
+  font-size:14px;
+}
+
+.toolbar-actions{
+  display:flex;
+  gap:14px;
+  flex-wrap:wrap;
+  align-items:flex-end;
+}
+
+.field{
+  display:flex;
+  flex-direction:column;
+  gap:8px;
+}
+
+.field span{
+  font-size:13px;
+  font-weight:500;
+  color:var(--muted);
+}
+
+.field input{
+  min-width:180px;
+  padding:13px 14px;
+  border-radius:14px;
+  border:1px solid rgba(104,3,7,0.16);
+  background:#fff;
+  color:var(--ink);
+  outline:none;
+  font-size:14px;
+}
+
+.field input:focus{
+  border-color:rgba(104,3,7,0.42);
+  box-shadow:0 0 0 4px rgba(104,3,7,0.08);
+}
+
+.metrics-grid{
+  display:grid;
+  grid-template-columns:repeat(auto-fit, minmax(180px, 1fr));
+  gap:16px;
+}
+
+.metric-card{
+  padding:20px;
+  border-radius:22px;
+  background:linear-gradient(180deg, rgba(255,255,255,0.76), rgba(232,217,195,0.78));
+  border:1px solid var(--line);
+  box-shadow:0 12px 30px rgba(104,3,7,0.08);
+}
+
+.metric-label{
+  font-size:13px;
+  color:var(--muted);
+  margin-bottom:10px;
+}
+
+.metric-value{
+  font-size:30px;
+  font-weight:700;
+  margin-bottom:8px;
+}
+
+.metric-note{
+  color:var(--muted);
+  font-size:13px;
+}
+
+.two-column{
+  display:grid;
+  grid-template-columns:1.2fr 1fr;
+  gap:20px;
+}
+
+.panel-inner{
+  padding:22px 24px;
+}
+
+.panel-header{
+  display:flex;
+  justify-content:space-between;
+  gap:16px;
+  align-items:flex-start;
+  margin-bottom:18px;
+}
+
+.panel-header h3{
+  margin:0;
+  font-size:20px;
+}
+
+.panel-header p{
+  margin:6px 0 0;
+  color:var(--muted);
+  font-size:14px;
+}
+
+.panel-header span{
+  color:var(--muted);
+  font-size:13px;
+  white-space:nowrap;
+}
+
+.list{
+  display:grid;
+  gap:12px;
+}
+
+.alert-item,
+.movement-item{
+  display:flex;
+  justify-content:space-between;
+  align-items:flex-start;
+  gap:16px;
+  padding:16px 18px;
+  border-radius:18px;
+  border:1px solid var(--line);
+  background:rgba(255,255,255,0.62);
+}
+
+.alert-item.high{
+  border-color:rgba(179,58,47,0.2);
+  background:var(--danger-bg);
+}
+
+.alert-item.medium{
+  border-color:rgba(154,98,23,0.2);
+  background:var(--warning-bg);
+}
+
+.alert-item.low{
+  border-color:rgba(104,3,7,0.12);
+  background:rgba(104,3,7,0.05);
+}
+
+.alert-title,
+.movement-title{
+  font-weight:700;
+  margin-bottom:6px;
+}
+
+.alert-message,
+.movement-message{
+  color:var(--muted);
+  font-size:14px;
+  line-height:1.5;
+}
+
+.alert-meta,
+.movement-time{
+  flex-shrink:0;
   font-size:12px;
-  margin-top:5px;
+  font-weight:700;
+  color:var(--muted);
+}
+
+.team-panel{
+  padding:24px;
+}
+
+.team-grid{
+  display:grid;
+  grid-template-columns:repeat(auto-fit, minmax(260px, 1fr));
+  gap:16px;
+}
+
+.team-card{
+  background:linear-gradient(180deg, rgba(255,255,255,0.82), rgba(250,243,234,0.98));
+  border:1px solid var(--line);
+  border-radius:22px;
+  padding:18px;
+  box-shadow:0 12px 28px rgba(104,3,7,0.08);
+}
+
+.team-card[data-status="ausente"]{
+  border-color:rgba(179,58,47,0.2);
+}
+
+.team-card[data-status="almoco"]{
+  border-color:rgba(154,98,23,0.2);
+}
+
+.team-card[data-status="presente"]{
+  border-color:rgba(31,122,57,0.2);
+}
+
+.team-card[data-status="finalizado"]{
+  border-color:rgba(33,95,165,0.2);
+}
+
+.team-card[data-status="incompleto"]{
+  border-color:rgba(101,93,88,0.22);
+}
+
+.team-head{
+  display:flex;
+  justify-content:space-between;
+  gap:12px;
+  margin-bottom:14px;
+}
+
+.team-person{
+  display:flex;
+  gap:12px;
+}
+
+.avatar{
+  width:44px;
+  height:44px;
+  border-radius:14px;
+  display:grid;
+  place-items:center;
+  font-weight:700;
+  font-size:14px;
+  flex-shrink:0;
+  background:rgba(104,3,7,0.1);
+  color:var(--wine);
+}
+
+.avatar.no-photo{
+  background:rgba(104,3,7,0.08);
+  color:var(--muted);
+}
+
+.team-name{
+  font-size:16px;
+  font-weight:700;
+  margin-bottom:4px;
+}
+
+.muted{
+  color:var(--muted);
+  font-size:13px;
+}
+
+.status-badge,
+.chip{
+  display:inline-flex;
+  align-items:center;
+  gap:6px;
+  padding:8px 12px;
+  border-radius:999px;
+  font-size:12px;
+  font-weight:700;
+}
+
+.status-presente{
+  background:var(--success-bg);
+  color:var(--success-text);
+}
+
+.status-finalizado{
+  background:var(--info-bg);
+  color:var(--info-text);
+}
+
+.status-ausente{
+  background:var(--danger-bg);
+  color:var(--danger-text);
+}
+
+.status-almoco{
+  background:var(--warning-bg);
+  color:var(--warning-text);
+}
+
+.status-incompleto{
+  background:var(--neutral-bg);
+  color:var(--neutral-text);
+}
+
+.chip-photo{
+  background:var(--success-bg);
+  color:var(--success-text);
+}
+
+.chip-no-photo{
+  background:var(--danger-bg);
+  color:var(--danger-text);
+}
+
+.chip-late{
+  background:var(--warning-bg);
+  color:var(--warning-text);
+}
+
+.chip-row{
+  display:flex;
+  flex-wrap:wrap;
+  gap:8px;
+  margin-bottom:14px;
+}
+
+.info-grid{
+  display:grid;
+  gap:10px;
+}
+
+.info-item{
+  display:flex;
+  justify-content:space-between;
+  gap:12px;
+  font-size:14px;
+}
+
+.info-item span:first-child{
+  color:var(--muted);
+}
+
+.progress{
+  margin:14px 0 10px;
+}
+
+.progress-track{
+  width:100%;
+  height:10px;
+  background:rgba(104,3,7,0.08);
+  border-radius:999px;
+  overflow:hidden;
+}
+
+.progress-fill{
+  height:100%;
+  border-radius:999px;
+  background:linear-gradient(90deg, #aa2d31, #d88f43);
+}
+
+.issue{
+  margin-top:12px;
+  padding:12px 14px;
+  border-radius:16px;
+  font-size:13px;
+  line-height:1.5;
+  color:var(--wine);
+  background:rgba(104,3,7,0.06);
+}
+
+.empty-state{
+  padding:34px 18px;
+  text-align:center;
+  color:var(--muted);
+  border:1px dashed rgba(104,3,7,0.16);
+  border-radius:18px;
+}
+
+.icon-button,
+.ghost-button,
+.secondary-button,
+.primary-button{
+  border:none;
+  cursor:pointer;
+  display:inline-flex;
+  align-items:center;
+  gap:10px;
+  font-family:inherit;
+  transition:transform 0.2s ease, background 0.2s ease, box-shadow 0.2s ease;
+}
+
+.icon-button{
+  width:48px;
+  height:48px;
+  border-radius:16px;
+  justify-content:center;
+  background:#fff;
+  color:var(--wine);
+  box-shadow:0 10px 24px rgba(104,3,7,0.08);
+}
+
+.ghost-button,
+.secondary-button,
+.primary-button{
+  padding:13px 18px;
+  border-radius:16px;
+  font-size:14px;
+  font-weight:700;
+}
+
+.ghost-button{
+  background:rgba(104,3,7,0.08);
+  color:var(--wine);
+}
+
+.secondary-button{
+  background:#fff;
+  color:var(--wine);
+  box-shadow:0 10px 24px rgba(104,3,7,0.08);
+}
+
+.primary-button{
+  background:var(--wine);
+  color:var(--sand);
+  box-shadow:0 14px 28px rgba(104,3,7,0.24);
+}
+
+.icon-button:hover,
+.ghost-button:hover,
+.secondary-button:hover,
+.primary-button:hover{
+  transform:translateY(-1px);
+}
+
+@media (max-width: 1040px){
+  .hero,
+  .two-column{
+    grid-template-columns:1fr;
+  }
+}
+
+@media (max-width: 760px){
+  .page-shell{
+    padding:18px;
+  }
+
+  .header{
+    flex-direction:column;
+  }
+
+  .header-copy h1{
+    font-size:28px;
+  }
+
+  .header-actions{
+    width:100%;
+  }
+
+  .header-actions button{
+    flex:1;
+    justify-content:center;
+  }
+
+  .toolbar{
+    align-items:flex-start;
+  }
+
+  .toolbar-actions{
+    width:100%;
+    flex-direction:column;
+    align-items:stretch;
+  }
+
+  .field input{
+    width:100%;
+  }
 }
 </style>
 </head>
 <body>
 
-<div class="header">
-  <div style="display:flex; align-items:center; gap:15px;">
-    
-    <i class="material-icons" style="cursor:pointer;"
-       onclick="voltarAdmin()">arrow_back</i>
+<div class="page-shell">
+  <header class="header">
+    <div class="header-left">
+      <button class="icon-button" onclick="voltarAdmin()" aria-label="Voltar para o painel administrativo">
+        <i class="material-icons">arrow_back</i>
+      </button>
 
-    <div>
-      <i class="material-icons">assessment</i>
-      Dashboard Inteligente
+      <div class="header-copy">
+        <span class="eyebrow">Acompanhamento diario</span>
+        <h1>Dashboard operacional</h1>
+        <p>
+          Acompanhe presenca, atrasos, jornadas em andamento, pendencias de foto facial
+          e os ultimos registros da equipe em uma visao pensada para quem administra o ponto.
+        </p>
+      </div>
     </div>
 
-  </div>
+    <div class="header-actions">
+      <button class="secondary-button" onclick="window.location.href='colaboradores.html'">
+        <i class="material-icons">groups</i>
+        <span>Ver colaboradoras</span>
+      </button>
 
-  <div style="display:flex; gap:15px; align-items:center;">
-
-    <i class="material-icons"
-       style="cursor:pointer;"
-       onclick="carregar()">refresh</i>
-
-  </div>
-</div>
-
-
-<div class="container">
-
-<div class="top-bar">
-
-  <div class="metrics">
-    <div class="metric-card">
-      <div class="metric-title">Presentes</div>
-      <div class="metric-value" id="mPresentes">0</div>
+      <button class="primary-button" onclick="carregar()">
+        <i class="material-icons">refresh</i>
+        <span>Atualizar dashboard</span>
+      </button>
     </div>
+  </header>
 
-    <div class="metric-card">
-      <div class="metric-title">Ausentes</div>
-      <div class="metric-value" id="mAusentes">0</div>
-    </div>
+  <main class="content">
+    <section class="panel hero">
+      <div>
+        <h2>O que precisa de atencao agora</h2>
+        <p>
+          O resumo abaixo mostra a cobertura do dia selecionado, quem ainda nao registrou ponto,
+          quais jornadas continuam abertas e onde o cadastro da equipe ainda esta incompleto.
+        </p>
+      </div>
 
-    <div class="metric-card">
-      <div class="metric-title">Finalizados</div>
-      <div class="metric-value" id="mFinalizados">0</div>
-    </div>
-  </div>
+      <div class="hero-summary">
+        <div class="hero-box">
+          <strong>Cobertura do dia</strong>
+          <span id="heroCoverage">0%</span>
+        </div>
 
-  <div>
-    <input type="date" id="filtroData">
-  </div>
+        <div class="hero-box">
+          <strong>Pendencias</strong>
+          <span id="heroPendencias">0</span>
+        </div>
+      </div>
+    </section>
 
-</div>
+    <section class="panel toolbar">
+      <div class="toolbar-copy">
+        <strong>Filtro da operacao</strong>
+        <span id="toolbarSummary">Carregando dados do time...</span>
+      </div>
 
-<div class="grid" id="grid"></div>
+      <div class="toolbar-actions">
+        <label class="field">
+          <span>Data analisada</span>
+          <input type="date" id="filtroData">
+        </label>
 
+        <button class="ghost-button" onclick="window.location.href='cadastro.html'">
+          <i class="material-icons">person_add</i>
+          <span>Novo cadastro</span>
+        </button>
+      </div>
+    </section>
+
+    <section class="metrics-grid">
+      <div class="metric-card">
+        <div class="metric-label">Cadastradas</div>
+        <div class="metric-value" id="metricTotal">0</div>
+        <div class="metric-note" id="metricTotalNote">Equipe total no sistema</div>
+      </div>
+
+      <div class="metric-card">
+        <div class="metric-label">Jornada aberta</div>
+        <div class="metric-value" id="metricPresentes">0</div>
+        <div class="metric-note" id="metricPresentesNote">Em expediente ou almoco</div>
+      </div>
+
+      <div class="metric-card">
+        <div class="metric-label">Finalizadas</div>
+        <div class="metric-value" id="metricFinalizados">0</div>
+        <div class="metric-note" id="metricFinalizadosNote">Com saida registrada</div>
+      </div>
+
+      <div class="metric-card">
+        <div class="metric-label">Atrasos</div>
+        <div class="metric-value" id="metricAtrasos">0</div>
+        <div class="metric-note" id="metricAtrasosNote">Entradas acima do horario</div>
+      </div>
+
+      <div class="metric-card">
+        <div class="metric-label">Sem registro</div>
+        <div class="metric-value" id="metricAusentes">0</div>
+        <div class="metric-note" id="metricAusentesNote">Ainda sem movimento no dia</div>
+      </div>
+
+      <div class="metric-card">
+        <div class="metric-label">Foto facial</div>
+        <div class="metric-value" id="metricFotos">0</div>
+        <div class="metric-note" id="metricFotosNote">Prontas para reconhecimento</div>
+      </div>
+    </section>
+
+    <section class="two-column">
+      <section class="panel panel-inner">
+        <div class="panel-header">
+          <div>
+            <h3>Alertas e pendencias</h3>
+            <p>Prioridades do dia selecionado e ajustes de cadastro que merecem atencao.</p>
+          </div>
+          <span id="alertCount">0 itens</span>
+        </div>
+
+        <div class="list" id="alertList"></div>
+      </section>
+
+      <section class="panel panel-inner">
+        <div class="panel-header">
+          <div>
+            <h3>Registros recentes</h3>
+            <p>Ultimas batidas encontradas na data analisada.</p>
+          </div>
+          <span id="movementCount">0 eventos</span>
+        </div>
+
+        <div class="list" id="movementList"></div>
+      </section>
+    </section>
+
+    <section class="panel team-panel">
+      <div class="panel-header">
+        <div>
+          <h3>Visao da equipe</h3>
+          <p>Resumo individual com status, progresso da jornada, historico e principais sinais.</p>
+        </div>
+        <span id="teamSummary">0 colaboradoras</span>
+      </div>
+
+      <div class="team-grid" id="teamGrid"></div>
+    </section>
+  </main>
 </div>
 
 <script>
+const filtroData = document.getElementById("filtroData");
+const alertList = document.getElementById("alertList");
+const movementList = document.getElementById("movementList");
+const teamGrid = document.getElementById("teamGrid");
 
-document.getElementById("filtroData").value =
-  new Date().toISOString().split("T")[0];
+const EVENT_LABELS = {
+  entrada: "Entrada",
+  saida_almoco: "Saida almoco",
+  volta_almoco: "Volta almoco",
+  saida: "Saida",
+};
 
-async function carregar(){
-
-  const dataSelecionada = document.getElementById("filtroData").value;
-
-  const response = await fetch("/dashboard");
-  const dados = await response.json();
-
-  const grid = document.getElementById("grid");
-  grid.innerHTML = "";
-
-  let presentes=0, ausentes=0, finalizados=0;
-
-  dados.registros_ponto.forEach(colab => {
-
-    const registro = colab.dias.find(d => d.data === dataSelecionada);
-
-    let statusClass = "ausente";
-    let statusTexto = "Não registrou";
-    let contador = "";
-    let alerta = "";
-    let online = "";
-
-    if(registro){
-
-      if(registro.entrada && !registro.saida){
-        statusClass="presente";
-        statusTexto="Em expediente";
-        presentes++;
-
-        online = `<div class="online-dot"></div>`;
-
-        // contador
-        const agora = new Date();
-        const [h,m] = registro.entrada.split(":");
-        const inicio = new Date();
-        inicio.setHours(h,m,0);
-
-        const diff = Math.floor((agora - inicio)/60000);
-        const horas = Math.floor(diff/60);
-        const minutos = diff%60;
-
-        contador = `⏱ ${horas}h ${minutos}m trabalhando`;
-
-        // alerta atraso (considerando 08:00 padrão)
-        if(h > 8){
-          alerta = `<div class="alert">🔔 Entrada com atraso</div>`;
-        }
-
-      }
-
-      if(registro.saida){
-        statusClass="atrasado";
-        statusTexto="Expediente finalizado";
-        finalizados++;
-      }
-
-    } else {
-      ausentes++;
-    }
-
-    const card = `
-      <div class="card">
-        ${online}
-        <div class="nome">${colab.nome}</div>
-        <div class="status ${statusClass}">${statusTexto}</div>
-        <div class="info">CPF: ${colab.cpf}</div>
-        <div class="info">Entrada: ${registro?.entrada || "-"}</div>
-        <div class="info">Saída: ${registro?.saida || "-"}</div>
-        <div class="info">${contador}</div>
-        ${alerta}
-      </div>
-    `;
-
-    grid.innerHTML += card;
-
-  });
-
-  document.getElementById("mPresentes").textContent = presentes;
-  document.getElementById("mAusentes").textContent = ausentes;
-  document.getElementById("mFinalizados").textContent = finalizados;
-
+function getLocalDateIso(date = new Date()) {
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, "0");
+  const day = String(date.getDate()).padStart(2, "0");
+  return `${year}-${month}-${day}`;
 }
 
-carregar();
-setInterval(carregar, 60000);
+function normalizeCpf(value) {
+  return String(value || "").replace(/\D/g, "");
+}
 
-document.getElementById("filtroData")
-  .addEventListener("change", carregar);
+function formatCpf(value) {
+  const digits = normalizeCpf(value);
+  if (digits.length !== 11) {
+    return value || "-";
+  }
 
-  function voltarAdmin(){
+  return `${digits.slice(0, 3)}.${digits.slice(3, 6)}.${digits.slice(6, 9)}-${digits.slice(9)}`;
+}
+
+function formatDateBr(value) {
+  if (!value || !/^\d{4}-\d{2}-\d{2}$/.test(value)) {
+    return "-";
+  }
+
+  const [year, month, day] = value.split("-");
+  return `${day}/${month}/${year}`;
+}
+
+function timeToMinutes(value) {
+  if (!value || !/^\d{2}:\d{2}$/.test(value)) {
+    return null;
+  }
+
+  const [hours, minutes] = value.split(":").map(Number);
+  return (hours * 60) + minutes;
+}
+
+function minutesToLabel(value) {
+  if (value === null || value === undefined || Number.isNaN(value)) {
+    return "-";
+  }
+
+  const hours = Math.floor(value / 60);
+  const minutes = value % 60;
+  return `${hours}h ${String(minutes).padStart(2, "0")}m`;
+}
+
+function getInitials(name) {
+  const parts = String(name || "").trim().split(/\s+/).filter(Boolean);
+  if (parts.length === 0) {
+    return "--";
+  }
+
+  return parts.slice(0, 2).map((part) => part[0].toUpperCase()).join("");
+}
+
+function collectEvents(dia) {
+  if (!dia) {
+    return [];
+  }
+
+  return Object.keys(EVENT_LABELS)
+    .filter((key) => dia[key])
+    .map((key) => ({
+      data: dia.data,
+      tipo: key,
+      hora: dia[key],
+      label: EVENT_LABELS[key],
+    }));
+}
+
+function getLatestEvent(colaboradora) {
+  let latest = null;
+
+  for (const dia of colaboradora.dias || []) {
+    for (const event of collectEvents(dia)) {
+      const stamp = `${event.data}T${event.hora}`;
+      if (!latest || stamp > latest.stamp) {
+        latest = { ...event, stamp };
+      }
+    }
+  }
+
+  return latest;
+}
+
+function getRegistroByDate(colaboradora, selectedDate) {
+  return (colaboradora.dias || []).find((dia) => dia.data === selectedDate) || null;
+}
+
+function getExpectedMinutes(colaboradora) {
+  const start = timeToMinutes(colaboradora.horario_inicio);
+  const end = timeToMinutes(colaboradora.horario_saida);
+  const [breakStart, breakEnd] = String(colaboradora.horario_descanso || "").split("-").map(timeToMinutes);
+
+  if (start === null || end === null || end <= start) {
+    return null;
+  }
+
+  const breakDuration = breakStart !== null && breakEnd !== null && breakEnd > breakStart
+    ? breakEnd - breakStart
+    : 0;
+
+  return Math.max(0, end - start - breakDuration);
+}
+
+function calculateWorkedMinutes(registro, selectedDate) {
+  if (!registro) {
+    return null;
+  }
+
+  const now = new Date();
+  const nowMinutes = (now.getHours() * 60) + now.getMinutes();
+  const selectedIsToday = selectedDate === getLocalDateIso(now);
+
+  const entrada = timeToMinutes(registro.entrada);
+  const saidaAlmoco = timeToMinutes(registro.saida_almoco);
+  const voltaAlmoco = timeToMinutes(registro.volta_almoco);
+  const saida = timeToMinutes(registro.saida);
+
+  let total = 0;
+  let hasSegment = false;
+
+  if (entrada !== null) {
+    const firstEnd = saidaAlmoco ?? saida ?? (selectedIsToday ? nowMinutes : null);
+    if (firstEnd !== null && firstEnd >= entrada) {
+      total += firstEnd - entrada;
+      hasSegment = true;
+    }
+  }
+
+  if (voltaAlmoco !== null) {
+    const secondEnd = saida ?? (selectedIsToday ? nowMinutes : null);
+    if (secondEnd !== null && secondEnd >= voltaAlmoco) {
+      total += secondEnd - voltaAlmoco;
+      hasSegment = true;
+    }
+  }
+
+  return hasSegment ? total : null;
+}
+
+function getStatusDetails(colaboradora, selectedDate) {
+  const registro = getRegistroByDate(colaboradora, selectedDate);
+  const hasAnyRecord = Boolean(
+    registro && (registro.entrada || registro.saida_almoco || registro.volta_almoco || registro.saida)
+  );
+
+  let key = "ausente";
+  let label = "Sem registro";
+
+  if (hasAnyRecord) {
+    if (registro.saida) {
+      key = "finalizado";
+      label = "Expediente finalizado";
+    } else if (registro.saida_almoco && !registro.volta_almoco) {
+      key = "almoco";
+      label = "Em almoco";
+    } else if (registro.entrada) {
+      key = "presente";
+      label = "Em expediente";
+    } else {
+      key = "incompleto";
+      label = "Registro parcial";
+    }
+  }
+
+  const entradaMinutos = timeToMinutes(registro?.entrada);
+  const inicioPrevisto = timeToMinutes(colaboradora.horario_inicio);
+  const lateMinutes = entradaMinutos !== null && inicioPrevisto !== null && entradaMinutos > inicioPrevisto
+    ? entradaMinutos - inicioPrevisto
+    : 0;
+
+  const workedMinutes = calculateWorkedMinutes(registro, selectedDate);
+  const expectedMinutes = getExpectedMinutes(colaboradora);
+  const progressPercent = workedMinutes !== null && expectedMinutes
+    ? Math.min(100, Math.round((workedMinutes / expectedMinutes) * 100))
+    : 0;
+
+  const latestToday = collectEvents(registro).slice().sort((a, b) => b.hora.localeCompare(a.hora))[0] || null;
+  const latestOverall = getLatestEvent(colaboradora);
+  const totalDiasComPonto = (colaboradora.dias || []).filter((dia) => collectEvents(dia).length > 0).length;
+  const selectedIsToday = selectedDate === getLocalDateIso();
+  const nowMinutes = (new Date().getHours() * 60) + new Date().getMinutes();
+  const saidaPrevista = timeToMinutes(colaboradora.horario_saida);
+  const missingCheckout = selectedIsToday && key === "presente" && saidaPrevista !== null && nowMinutes > saidaPrevista + 10;
+
+  return {
+    registro,
+    hasAnyRecord,
+    key,
+    label,
+    lateMinutes,
+    isLate: lateMinutes > 0,
+    workedMinutes,
+    progressPercent,
+    latestToday,
+    latestOverall,
+    totalDiasComPonto,
+    missingCheckout,
+  };
+}
+
+function compareSeverity(a, b) {
+  const scoreMap = {
+    ausente: 0,
+    almoco: 1,
+    incompleto: 2,
+    presente: 3,
+    finalizado: 4,
+  };
+
+  const diff = scoreMap[a.status.key] - scoreMap[b.status.key];
+  if (diff !== 0) {
+    return diff;
+  }
+
+  if (a.status.isLate !== b.status.isLate) {
+    return a.status.isLate ? -1 : 1;
+  }
+
+  return a.colaboradora.nome.localeCompare(b.colaboradora.nome, "pt-BR");
+}
+
+function buildAlerts(colaboradora, status, selectedDate) {
+  const alerts = [];
+
+  if (status.key === "ausente") {
+    alerts.push({
+      severity: "high",
+      title: "Sem registro",
+      message: `${colaboradora.nome} nao teve nenhuma movimentacao em ${formatDateBr(selectedDate)}.`,
+      meta: formatCpf(colaboradora.cpf),
+    });
+  }
+
+  if (status.isLate) {
+    alerts.push({
+      severity: "medium",
+      title: "Entrada com atraso",
+      message: `${colaboradora.nome} entrou ${minutesToLabel(status.lateMinutes)} apos o horario previsto.`,
+      meta: `${colaboradora.horario_inicio} previsto`,
+    });
+  }
+
+  if (status.key === "almoco") {
+    alerts.push({
+      severity: "medium",
+      title: "Almoco em aberto",
+      message: `${colaboradora.nome} registrou saida para almoco e ainda nao marcou o retorno.`,
+      meta: status.registro?.saida_almoco || "-",
+    });
+  }
+
+  if (status.key === "incompleto") {
+    alerts.push({
+      severity: "medium",
+      title: "Registro parcial",
+      message: `${colaboradora.nome} tem batidas incompletas na data analisada.`,
+      meta: formatCpf(colaboradora.cpf),
+    });
+  }
+
+  if (status.missingCheckout) {
+    alerts.push({
+      severity: "high",
+      title: "Saida final pendente",
+      message: `${colaboradora.nome} segue com jornada aberta depois do horario previsto de saida.`,
+      meta: `${colaboradora.horario_saida} previsto`,
+    });
+  }
+
+  if (!colaboradora.tem_foto) {
+    alerts.push({
+      severity: "low",
+      title: "Cadastro sem foto",
+      message: `${colaboradora.nome} ainda nao tem foto facial para reconhecimento.`,
+      meta: "Cadastro",
+    });
+  }
+
+  return alerts;
+}
+
+function updateMetrics(items, selectedDate) {
+  const total = items.length;
+  const presentes = items.filter((item) => ["presente", "almoco"].includes(item.status.key)).length;
+  const finalizados = items.filter((item) => item.status.key === "finalizado").length;
+  const atrasos = items.filter((item) => item.status.isLate).length;
+  const ausentes = items.filter((item) => item.status.key === "ausente").length;
+  const fotos = items.filter((item) => item.colaboradora.tem_foto).length;
+  const cobertura = total > 0 ? Math.round(((total - ausentes) / total) * 100) : 0;
+
+  document.getElementById("metricTotal").textContent = total;
+  document.getElementById("metricPresentes").textContent = presentes;
+  document.getElementById("metricFinalizados").textContent = finalizados;
+  document.getElementById("metricAtrasos").textContent = atrasos;
+  document.getElementById("metricAusentes").textContent = ausentes;
+  document.getElementById("metricFotos").textContent = fotos;
+
+  document.getElementById("metricTotalNote").textContent = `${Math.max(total - fotos, 0)} sem foto facial`;
+  document.getElementById("metricPresentesNote").textContent = presentes > 0
+    ? `${presentes} com jornada ainda em aberto`
+    : "Nenhuma jornada aberta";
+  document.getElementById("metricFinalizadosNote").textContent = finalizados > 0
+    ? `${finalizados} colaboradora(s) ja encerraram o dia`
+    : "Sem saida final registrada";
+  document.getElementById("metricAtrasosNote").textContent = atrasos > 0
+    ? `${atrasos} colaboradora(s) chegaram depois do horario`
+    : "Nenhum atraso detectado";
+  document.getElementById("metricAusentesNote").textContent = ausentes > 0
+    ? `${ausentes} ainda sem qualquer registro`
+    : "Todas tiveram alguma movimentacao";
+  document.getElementById("metricFotosNote").textContent = fotos > 0
+    ? `${fotos} prontas para reconhecimento facial`
+    : "Nenhuma foto configurada";
+
+  document.getElementById("heroCoverage").textContent = `${cobertura}%`;
+  document.getElementById("toolbarSummary").textContent = `${total} colaboradora(s) acompanhadas em ${formatDateBr(selectedDate)}.`;
+}
+
+function renderAlerts(alerts) {
+  document.getElementById("alertCount").textContent = `${alerts.length} item(ns)`;
+  document.getElementById("heroPendencias").textContent = alerts.length;
+
+  if (alerts.length === 0) {
+    alertList.innerHTML = '<div class="empty-state">Nenhuma pendencia encontrada na data analisada.</div>';
+    return;
+  }
+
+  alertList.innerHTML = alerts.map((alert) => `
+    <div class="alert-item ${alert.severity}">
+      <div>
+        <div class="alert-title">${alert.title}</div>
+        <div class="alert-message">${alert.message}</div>
+      </div>
+      <div class="alert-meta">${alert.meta}</div>
+    </div>
+  `).join("");
+}
+
+function renderMovements(items, selectedDate) {
+  const movements = [];
+
+  items.forEach((item) => {
+    collectEvents(item.status.registro).forEach((event) => {
+      movements.push({
+        nome: item.colaboradora.nome,
+        horario: event.hora,
+        title: `${event.label} registrada`,
+        message: `${item.colaboradora.nome} registrou ${event.label.toLowerCase()} em ${formatDateBr(selectedDate)}.`,
+      });
+    });
+  });
+
+  movements.sort((a, b) => b.horario.localeCompare(a.horario));
+
+  document.getElementById("movementCount").textContent = `${movements.length} evento(s)`;
+
+  if (movements.length === 0) {
+    movementList.innerHTML = '<div class="empty-state">Nao ha registros na data analisada.</div>';
+    return;
+  }
+
+  movementList.innerHTML = movements.slice(0, 10).map((movement) => `
+    <div class="movement-item">
+      <div>
+        <div class="movement-title">${movement.title}</div>
+        <div class="movement-message">${movement.message}</div>
+      </div>
+      <div class="movement-time">${movement.horario}</div>
+    </div>
+  `).join("");
+}
+
+function renderTeam(items) {
+  document.getElementById("teamSummary").textContent = `${items.length} colaboradora(s)`;
+
+  if (items.length === 0) {
+    teamGrid.innerHTML = '<div class="empty-state">Nenhuma colaboradora cadastrada no sistema.</div>';
+    return;
+  }
+
+  teamGrid.innerHTML = items.map((item) => {
+    const { colaboradora, status } = item;
+    const fotoClass = colaboradora.tem_foto ? "chip-photo" : "chip-no-photo";
+    const fotoText = colaboradora.tem_foto ? "Com foto" : "Sem foto";
+    const primaryIssue = buildAlerts(colaboradora, status, filtroData.value)[0];
+    const latestLabel = status.latestOverall
+      ? `${status.latestOverall.label} ${status.latestOverall.hora} em ${formatDateBr(status.latestOverall.data)}`
+      : "Sem historico de ponto";
+    const jornadaHoje = status.workedMinutes !== null
+      ? `${minutesToLabel(status.workedMinutes)} registrados`
+      : "Sem calculo de jornada";
+
+    return `
+      <article class="team-card" data-status="${status.key}">
+        <div class="team-head">
+          <div class="team-person">
+            <div class="avatar ${colaboradora.tem_foto ? "" : "no-photo"}">${getInitials(colaboradora.nome)}</div>
+            <div>
+              <div class="team-name">${colaboradora.nome}</div>
+              <div class="muted">CPF ${formatCpf(colaboradora.cpf)}</div>
+            </div>
+          </div>
+
+          <span class="status-badge status-${status.key}">${status.label}</span>
+        </div>
+
+        <div class="chip-row">
+          <span class="chip ${fotoClass}">${fotoText}</span>
+          ${status.isLate ? `<span class="chip chip-late">Atraso ${minutesToLabel(status.lateMinutes)}</span>` : ""}
+        </div>
+
+        <div class="info-grid">
+          <div class="info-item"><span>Horario</span><strong>${colaboradora.horario_inicio || "-"} ate ${colaboradora.horario_saida || "-"}</strong></div>
+          <div class="info-item"><span>Descanso</span><strong>${colaboradora.horario_descanso || "-"}</strong></div>
+          <div class="info-item"><span>Hoje</span><strong>${status.registro?.entrada || "-"} / ${status.registro?.saida || "-"}</strong></div>
+          <div class="info-item"><span>Ultimo registro</span><strong>${latestLabel}</strong></div>
+          <div class="info-item"><span>Historico</span><strong>${status.totalDiasComPonto} dia(s) com ponto</strong></div>
+        </div>
+
+        <div class="progress">
+          <div class="progress-track">
+            <div class="progress-fill" style="width:${status.progressPercent}%"></div>
+          </div>
+          <div class="muted" style="margin-top:8px;">${jornadaHoje}</div>
+        </div>
+
+        ${primaryIssue ? `<div class="issue">${primaryIssue.title}: ${primaryIssue.message}</div>` : ""}
+      </article>
+    `;
+  }).join("");
+}
+
+async function carregar() {
+  try {
+    const selectedDate = filtroData.value;
+    const response = await fetch("/api/dashboard");
+    const data = await response.json();
+    const colaboradoras = data.registros_ponto || [];
+
+    const items = colaboradoras
+      .map((colaboradora) => ({
+        colaboradora,
+        status: getStatusDetails(colaboradora, selectedDate),
+      }))
+      .sort(compareSeverity);
+
+    const alerts = items
+      .flatMap((item) => buildAlerts(item.colaboradora, item.status, selectedDate))
+      .sort((a, b) => {
+        const order = { high: 0, medium: 1, low: 2 };
+        return order[a.severity] - order[b.severity];
+      });
+
+    updateMetrics(items, selectedDate);
+    renderAlerts(alerts);
+    renderMovements(items, selectedDate);
+    renderTeam(items);
+  } catch (error) {
+    console.error("Erro ao carregar dashboard:", error);
+    document.getElementById("toolbarSummary").textContent = "Nao foi possivel carregar os dados da operacao.";
+    document.getElementById("alertCount").textContent = "Erro";
+    document.getElementById("movementCount").textContent = "Erro";
+    document.getElementById("teamSummary").textContent = "Erro";
+    alertList.innerHTML = '<div class="empty-state">Falha ao carregar alertas.</div>';
+    movementList.innerHTML = '<div class="empty-state">Falha ao carregar movimentacoes.</div>';
+    teamGrid.innerHTML = '<div class="empty-state">Falha ao carregar a visao da equipe.</div>';
+  }
+}
+
+function voltarAdmin() {
   window.location.href = "admin.html";
 }
 
+filtroData.value = getLocalDateIso();
+filtroData.addEventListener("change", carregar);
 
+carregar();
+setInterval(carregar, 60000);
 </script>
 
 </body>

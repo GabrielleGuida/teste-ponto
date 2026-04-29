@@ -70,7 +70,7 @@ button{
 }
 
 button:hover{
-  background:#8904081;
+  background:#890408;
   transform:translateY(-2px);
 }
 
@@ -89,7 +89,7 @@ button:hover{
 
   <form id="loginForm">
     <div class="input-group">
-      <input type="text" id="usuario" placeholder="Usuário ou CPF" required>
+      <input type="text" id="usuario" placeholder="Usuario ou CPF" required>
     </div>
 
     <div class="input-group">
@@ -100,37 +100,48 @@ button:hover{
   </form>
 
   <div class="footer">
-    © 2026 Sistema Interno
+    &copy; 2026 Sistema Interno
   </div>
 </div>
 
 <script>
-document.getElementById("loginForm").addEventListener("submit", async function(e){
-  e.preventDefault();
+const loginForm = document.getElementById("loginForm");
 
-  const usuario = document.getElementById("usuario").value;
+function normalizeCpf(value) {
+  return String(value || "").replace(/\D/g, "");
+}
+
+loginForm.addEventListener("submit", async (event) => {
+  event.preventDefault();
+
+  const usuario = document.getElementById("usuario").value.trim();
   const senha = document.getElementById("senha").value;
 
-  if(usuario === "gabriel" && senha === "474849"){
+  if (usuario.toLowerCase() === "gabriel" && senha === "474849") {
     window.location.href = "admin.html";
     return;
   }
 
+  const cpf = normalizeCpf(usuario);
+  if (!cpf) {
+    alert("Digite um CPF valido.");
+    return;
+  }
+
   try {
-    const response = await fetch("assets/colaboradoras.json");
-    const data = await response.json();
+    const response = await fetch(`/api/colaboradoras/${encodeURIComponent(cpf)}`);
 
-    const colaboradora = data.colaboradoras.find(c => c.cpf === usuario);
-
-    if(colaboradora){
-      localStorage.setItem("colaboradoraLogada", JSON.stringify(colaboradora));
-      window.location.href = "colaboradora.html";
-    } else {
-      alert("CPF não encontrado!");
+    if (!response.ok) {
+      alert("CPF nao encontrado!");
+      return;
     }
 
-  } catch(error){
-    console.error("Erro ao carregar colaboradoras:", error);
+    const colaboradora = await response.json();
+    localStorage.setItem("colaboradoraLogada", JSON.stringify(colaboradora));
+    window.location.href = "colaboradora.html";
+  } catch (error) {
+    console.error("Erro ao buscar colaboradora:", error);
+    alert("Erro ao conectar com o servidor.");
   }
 });
 </script>

@@ -24,8 +24,8 @@ body{
   padding:30px;
   border-radius:12px;
   box-shadow:0 10px 25px rgba(0,0,0,0.08);
-  max-height: 95vh;
-  overflow-y: auto;
+  max-height:95vh;
+  overflow-y:auto;
 }
 
 h2{
@@ -61,20 +61,20 @@ select{
   font-size:14px;
 }
 
-.camera-box {
-  margin-top: 20px;
-  text-align: center;
+.camera-box{
+  margin-top:20px;
+  text-align:center;
 }
 
-#video {
-  width: 100%;
-  border-radius: 8px;
-  background: #000;
-  transform: scaleX(-1);
+#video{
+  width:100%;
+  border-radius:8px;
+  background:#000;
+  transform:scaleX(-1);
 }
 
-#canvas {
-  display: none;
+#canvas{
+  display:none;
 }
 
 button{
@@ -92,12 +92,12 @@ button{
 }
 
 button:hover{
-  background:#8904081;
+  background:#890408;
 }
 
-button:disabled {
-  background: #ccc;
-  cursor: not-allowed;
+button:disabled{
+  background:#ccc;
+  cursor:not-allowed;
 }
 
 .success{
@@ -106,7 +106,7 @@ button:disabled {
   color:green;
 }
 
-.error {
+.error{
   margin-top:15px;
   font-size:13px;
   color:red;
@@ -132,7 +132,6 @@ button:disabled {
 .logout:hover{
   background:#c62828;
 }
-
 </style>
 </head>
 <body>
@@ -144,7 +143,6 @@ button:disabled {
   <button class="logout" onclick="logout()">Sair</button>
 </div>
 
-
 <div class="info" id="dados"></div>
 
 <div class="relogio" id="agora"></div>
@@ -152,13 +150,13 @@ button:disabled {
 <label>Tipo de Registro</label>
 <select id="tipoPonto">
   <option value="entrada">Entrada</option>
-  <option value="saida_almoco">Saída Almoço</option>
-  <option value="volta_almoco">Volta Almoço</option>
-  <option value="saida">Saída Final</option>
+  <option value="saida_almoco">Saida Almoco</option>
+  <option value="volta_almoco">Volta Almoco</option>
+  <option value="saida">Saida Final</option>
 </select>
 
 <div class="camera-box">
-  <label style="display:block; margin-bottom:10px;">Reconhecimento Facial Obrigatório</label>
+  <label style="display:block; margin-bottom:10px;">Reconhecimento facial obrigatorio</label>
   <video id="video" autoplay muted></video>
   <canvas id="canvas"></canvas>
 </div>
@@ -170,137 +168,198 @@ button:disabled {
 </div>
 
 <script>
-const colaboradora = JSON.parse(localStorage.getItem("colaboradoraLogada"));
-const video = document.getElementById('video');
-const canvas = document.getElementById('canvas');
-const btnRegistrar = document.getElementById('btnRegistrar');
-const msgDiv = document.getElementById('mensagem');
+let colaboradora = JSON.parse(localStorage.getItem("colaboradoraLogada") || "null");
 
-if(!colaboradora){
+const video = document.getElementById("video");
+const canvas = document.getElementById("canvas");
+const btnRegistrar = document.getElementById("btnRegistrar");
+const msgDiv = document.getElementById("mensagem");
+const dadosDiv = document.getElementById("dados");
+const relogioDiv = document.getElementById("agora");
+
+if (!colaboradora || !colaboradora.cpf) {
   window.location.href = "index.html";
 }
 
-document.getElementById("dados").innerHTML = `
-  <strong>${colaboradora.nome}</strong><br>
-  CPF: ${colaboradora.cpf}<br>
-  Horário: ${colaboradora.horario_inicio} - ${colaboradora.horario_saida}
-`;
+function normalizeCpf(value) {
+  return String(value || "").replace(/\D/g, "");
+}
 
-// Relógio ao vivo
-setInterval(() => {
+function formatCpf(value) {
+  const cpf = normalizeCpf(value);
+  if (cpf.length !== 11) {
+    return cpf;
+  }
+
+  return cpf.replace(/(\d{3})(\d{3})(\d{3})(\d{2})/, "$1.$2.$3-$4");
+}
+
+function getLocalDateIso(date = new Date()) {
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, "0");
+  const day = String(date.getDate()).padStart(2, "0");
+  return `${year}-${month}-${day}`;
+}
+
+function setMensagem(texto, tipo = "") {
+  msgDiv.className = tipo;
+  msgDiv.textContent = texto;
+}
+
+function renderDados() {
+  dadosDiv.innerHTML = `
+    <strong>${colaboradora.nome}</strong><br>
+    CPF: ${formatCpf(colaboradora.cpf)}<br>
+    Horario: ${colaboradora.horario_inicio} - ${colaboradora.horario_saida}
+  `;
+}
+
+function atualizarRelogio() {
   const agora = new Date();
-  document.getElementById("agora").textContent =
-    agora.toLocaleDateString() + " " + agora.toLocaleTimeString();
-}, 1000);
+  relogioDiv.textContent = `${agora.toLocaleDateString("pt-BR")} ${agora.toLocaleTimeString("pt-BR")}`;
+}
 
-async function init() {
+function stopCamera() {
+  if (!video.srcObject) {
+    return;
+  }
+
+  for (const track of video.srcObject.getTracks()) {
+    track.stop();
+  }
+
+  video.srcObject = null;
+}
+
+async function carregarColaboradoraAtual() {
+  const response = await fetch(`/api/colaboradoras/${encodeURIComponent(normalizeCpf(colaboradora.cpf))}`);
+
+  if (!response.ok) {
+    throw new Error("Colaboradora nao encontrada");
+  }
+
+  colaboradora = await response.json();
+  localStorage.setItem("colaboradoraLogada", JSON.stringify(colaboradora));
+  renderDados();
+}
+
+async function initFaceApiAndCamera() {
+  setMensagem("Carregando modulos de seguranca...");
+  btnRegistrar.disabled = true;
+
+  await faceapi.nets.tinyFaceDetector.loadFromUri("/models");
+  await faceapi.nets.faceLandmark68Net.loadFromUri("/models");
+  await faceapi.nets.faceRecognitionNet.loadFromUri("/models");
+
+  const stream = await navigator.mediaDevices.getUserMedia({ video: true });
+  video.srcObject = stream;
+
+  setMensagem("Camera pronta. Posicione seu rosto.");
+  btnRegistrar.disabled = false;
+}
+
+async function bootstrap() {
   try {
-    msgDiv.className = "";
-    msgDiv.textContent = "Carregando módulos de segurança...";
+    await carregarColaboradoraAtual();
+    atualizarRelogio();
+    setInterval(atualizarRelogio, 1000);
+    await initFaceApiAndCamera();
+  } catch (error) {
+    console.error(error);
+    setMensagem("Erro ao carregar dados ou acessar a camera.", "error");
     btnRegistrar.disabled = true;
-
-    await faceapi.nets.tinyFaceDetector.loadFromUri('/models');
-    await faceapi.nets.faceLandmark68Net.loadFromUri('/models');
-    await faceapi.nets.faceRecognitionNet.loadFromUri('/models');
-
-    const stream = await navigator.mediaDevices.getUserMedia({ video: true });
-    video.srcObject = stream;
-    
-    msgDiv.textContent = "Câmera pronta. Posicione seu rosto.";
-    btnRegistrar.disabled = false;
-  } catch (err) {
-    msgDiv.className = "error";
-    msgDiv.textContent = "Erro ao acessar câmera ou carregar modelos.";
-    console.error(err);
   }
 }
 
-init();
+bootstrap();
 
 async function validarERegistrar() {
-  msgDiv.className = "";
-  msgDiv.textContent = "Validando identidade...";
+  setMensagem("Validando identidade...");
   btnRegistrar.disabled = true;
 
   if (!colaboradora.face_descriptor) {
-    msgDiv.className = "error";
-    msgDiv.textContent = "Erro: Colaboradora sem biometria cadastrada. Contate o admin.";
+    setMensagem("Erro: colaboradora sem biometria cadastrada. Contate o admin.", "error");
     btnRegistrar.disabled = false;
     return;
   }
 
-  // Capturar frame atual
+  if (!video.videoWidth || !video.videoHeight) {
+    setMensagem("A camera ainda nao esta pronta. Tente novamente.", "error");
+    btnRegistrar.disabled = false;
+    return;
+  }
+
   canvas.width = video.videoWidth;
   canvas.height = video.videoHeight;
-  canvas.getContext('2d').drawImage(video, 0, 0);
+  canvas.getContext("2d").drawImage(video, 0, 0);
 
-  const detection = await faceapi.detectSingleFace(canvas, new faceapi.TinyFaceDetectorOptions()).withFaceLandmarks().withFaceDescriptor();
+  const detection = await faceapi
+    .detectSingleFace(canvas, new faceapi.TinyFaceDetectorOptions())
+    .withFaceLandmarks()
+    .withFaceDescriptor();
 
   if (!detection) {
-    msgDiv.className = "error";
-    msgDiv.textContent = "Rosto não detectado. Tente novamente.";
+    setMensagem("Rosto nao detectado. Tente novamente.", "error");
     btnRegistrar.disabled = false;
     return;
   }
 
-  // Comparar descritores
   const savedDescriptor = new Float32Array(colaboradora.face_descriptor);
   const currentDescriptor = detection.descriptor;
   const distance = faceapi.euclideanDistance(savedDescriptor, currentDescriptor);
 
-  // Limiar de 0.6 é padrão para reconhecimento facial
   if (distance < 0.5) {
-    msgDiv.className = "success";
-    msgDiv.textContent = "Identidade confirmada! Registrando...";
+    setMensagem("Identidade confirmada! Registrando...", "success");
     await registrarPonto();
-  } else {
-    msgDiv.className = "error";
-    msgDiv.textContent = "Reconhecimento falhou. Acesso negado.";
-    btnRegistrar.disabled = false;
+    return;
   }
+
+  setMensagem("Reconhecimento falhou. Acesso negado.", "error");
+  btnRegistrar.disabled = false;
 }
 
-async function registrarPonto(){
+async function registrarPonto() {
   const tipo = document.getElementById("tipoPonto").value;
   const agora = new Date();
-  const horarioAtual = agora.toTimeString().slice(0,5);
-  const dataAtual = agora.toISOString().split("T")[0];
+  const horarioAtual = agora.toTimeString().slice(0, 5);
+  const dataAtual = getLocalDateIso(agora);
 
   const registro = {
-    cpf: colaboradora.cpf,
-    nome: colaboradora.nome,
-    dia: {
-      data: dataAtual,
-      tipo: tipo,
-      hora: horarioAtual
-    }
+    cpf: normalizeCpf(colaboradora.cpf),
+    tipo,
+    data: dataAtual,
+    hora: horarioAtual,
   };
 
   try {
-    const response = await fetch("/registrar-ponto", {
+    const response = await fetch("/api/registrar-ponto", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(registro)
+      body: JSON.stringify(registro),
     });
 
     const resultado = await response.json();
-    msgDiv.className = "success";
-    msgDiv.textContent = resultado.mensagem;
-    
-    // Opcional: Bloquear botão após sucesso
+
+    if (!response.ok) {
+      setMensagem(resultado.mensagem || "Erro ao salvar registro no servidor.", "error");
+      btnRegistrar.disabled = false;
+      return;
+    }
+
+    setMensagem(resultado.mensagem, "success");
     btnRegistrar.disabled = true;
-  } catch (err) {
-    msgDiv.className = "error";
-    msgDiv.textContent = "Erro ao salvar registro no servidor.";
+  } catch (error) {
+    console.error("Erro ao registrar ponto:", error);
+    setMensagem("Erro ao salvar registro no servidor.", "error");
     btnRegistrar.disabled = false;
   }
 }
 
-function logout(){
+function logout() {
+  stopCamera();
   localStorage.removeItem("colaboradoraLogada");
   window.location.href = "index.html";
 }
-
 </script>
 
 </body>

@@ -22,6 +22,13 @@
       "horario_inicio": "09:00",
       "horario_saida": "13:00",
       "horario_descanso": "13:00-14:00"
+    },
+    {
+      "nome": "GABRIELLE GUIDA SOUZA NUNES CAMPOS",
+      "cpf": "074.867.101-37",
+      "horario_inicio": "08:00",
+      "horario_saida": "18:00",
+      "horario_descanso": "13:00-14:00"
     }
   ]
 }

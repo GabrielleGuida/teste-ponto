@@ -1,0 +1,1018 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<title>Colaboradoras Cadastradas</title>
+
+<link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+
+<style>
+:root{
+  --wine:#680307;
+  --wine-dark:#4d0205;
+  --sand:#e8d9c3;
+  --paper:#fffaf4;
+  --ink:#2b2a28;
+  --muted:#6f655f;
+  --line:rgba(104,3,7,0.12);
+  --card-shadow:0 18px 40px rgba(60,28,18,0.12);
+  --success-bg:#e7f6ea;
+  --success-text:#1f7a39;
+  --warning-bg:#fff4df;
+  --warning-text:#9a6217;
+  --danger-bg:#fde9e7;
+  --danger-text:#b33a2f;
+  --info-bg:#e4eefc;
+  --info-text:#215fa5;
+  --neutral-bg:#ece7e1;
+  --neutral-text:#655d58;
+}
+
+*{
+  box-sizing:border-box;
+}
+
+body{
+  margin:0;
+  font-family:'Roboto', sans-serif;
+  color:var(--ink);
+  background:
+    radial-gradient(circle at top left, rgba(232,217,195,0.95), transparent 28%),
+    linear-gradient(180deg, #f4ece4 0%, #fbf8f3 32%, #f4efe8 100%);
+}
+
+.page-shell{
+  min-height:100vh;
+  padding:28px;
+}
+
+.header{
+  display:flex;
+  justify-content:space-between;
+  align-items:flex-start;
+  gap:20px;
+  margin-bottom:24px;
+}
+
+.header-left{
+  display:flex;
+  gap:16px;
+  align-items:flex-start;
+}
+
+.header-copy h1{
+  margin:4px 0 8px;
+  font-size:34px;
+  font-weight:700;
+}
+
+.header-copy p{
+  margin:0;
+  color:var(--muted);
+  max-width:700px;
+  line-height:1.55;
+}
+
+.eyebrow{
+  display:inline-block;
+  padding:6px 12px;
+  border-radius:999px;
+  background:rgba(104,3,7,0.08);
+  color:var(--wine);
+  font-size:12px;
+  font-weight:700;
+  letter-spacing:0.08em;
+  text-transform:uppercase;
+}
+
+.header-actions{
+  display:flex;
+  gap:12px;
+  flex-wrap:wrap;
+}
+
+.content{
+  display:flex;
+  flex-direction:column;
+  gap:20px;
+}
+
+.panel{
+  background:rgba(255,250,244,0.9);
+  border:1px solid rgba(255,255,255,0.72);
+  border-radius:24px;
+  box-shadow:var(--card-shadow);
+  backdrop-filter:blur(10px);
+}
+
+.summary-grid{
+  display:grid;
+  grid-template-columns:repeat(auto-fit, minmax(180px, 1fr));
+  gap:16px;
+}
+
+.summary-card{
+  padding:20px;
+  border-radius:22px;
+  background:linear-gradient(180deg, rgba(255,255,255,0.76), rgba(232,217,195,0.78));
+  border:1px solid var(--line);
+  box-shadow:0 12px 30px rgba(104,3,7,0.08);
+}
+
+.summary-label{
+  font-size:13px;
+  color:var(--muted);
+  margin-bottom:10px;
+}
+
+.summary-value{
+  font-size:30px;
+  font-weight:700;
+  margin-bottom:8px;
+}
+
+.summary-note{
+  font-size:13px;
+  color:var(--muted);
+}
+
+.filters-panel{
+  padding:24px;
+}
+
+.filter-grid{
+  display:grid;
+  grid-template-columns:2fr 1fr 1fr 1fr;
+  gap:16px;
+}
+
+.field{
+  display:flex;
+  flex-direction:column;
+  gap:8px;
+}
+
+.field span{
+  font-size:13px;
+  font-weight:500;
+  color:var(--muted);
+}
+
+.field input,
+.field select{
+  width:100%;
+  padding:13px 14px;
+  border-radius:14px;
+  border:1px solid rgba(104,3,7,0.16);
+  background:#fff;
+  color:var(--ink);
+  outline:none;
+  font-size:14px;
+  transition:border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.field input:focus,
+.field select:focus{
+  border-color:rgba(104,3,7,0.42);
+  box-shadow:0 0 0 4px rgba(104,3,7,0.08);
+}
+
+.filter-footer{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  gap:16px;
+  margin-top:18px;
+  color:var(--muted);
+  font-size:14px;
+}
+
+.table-panel{
+  overflow:hidden;
+}
+
+.table-scroll{
+  overflow:auto;
+}
+
+table{
+  width:100%;
+  border-collapse:collapse;
+  min-width:1120px;
+}
+
+thead th{
+  text-align:left;
+  padding:18px 20px;
+  font-size:12px;
+  letter-spacing:0.06em;
+  text-transform:uppercase;
+  color:var(--muted);
+  background:rgba(104,3,7,0.04);
+}
+
+tbody td{
+  padding:20px;
+  border-top:1px solid var(--line);
+  vertical-align:top;
+}
+
+tbody tr:hover{
+  background:rgba(255,255,255,0.48);
+}
+
+.person-cell{
+  display:flex;
+  gap:14px;
+  align-items:flex-start;
+}
+
+.avatar{
+  width:44px;
+  height:44px;
+  border-radius:14px;
+  display:grid;
+  place-items:center;
+  font-weight:700;
+  font-size:14px;
+  flex-shrink:0;
+  background:rgba(104,3,7,0.1);
+  color:var(--wine);
+}
+
+.avatar.no-photo{
+  background:rgba(104,3,7,0.08);
+  color:var(--muted);
+}
+
+.person-name{
+  font-size:16px;
+  font-weight:700;
+  margin-bottom:4px;
+}
+
+.muted{
+  color:var(--muted);
+  font-size:13px;
+}
+
+.status-badge,
+.chip{
+  display:inline-flex;
+  align-items:center;
+  gap:6px;
+  padding:8px 12px;
+  border-radius:999px;
+  font-size:12px;
+  font-weight:700;
+}
+
+.status-presente{
+  background:var(--success-bg);
+  color:var(--success-text);
+}
+
+.status-finalizado{
+  background:var(--info-bg);
+  color:var(--info-text);
+}
+
+.status-ausente{
+  background:var(--danger-bg);
+  color:var(--danger-text);
+}
+
+.status-almoco{
+  background:var(--warning-bg);
+  color:var(--warning-text);
+}
+
+.status-incompleto{
+  background:var(--neutral-bg);
+  color:var(--neutral-text);
+}
+
+.chip-photo{
+  background:var(--success-bg);
+  color:var(--success-text);
+}
+
+.chip-no-photo{
+  background:var(--danger-bg);
+  color:var(--danger-text);
+}
+
+.registro-list{
+  display:grid;
+  gap:8px;
+}
+
+.registro-item{
+  display:flex;
+  justify-content:space-between;
+  gap:12px;
+  font-size:13px;
+}
+
+.registro-item span:first-child{
+  color:var(--muted);
+}
+
+.cell-stack{
+  display:grid;
+  gap:8px;
+}
+
+.small-alert{
+  margin-top:10px;
+  font-size:12px;
+  color:var(--danger-text);
+  font-weight:500;
+}
+
+.action-link{
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  gap:8px;
+  padding:10px 12px;
+  border-radius:12px;
+  background:rgba(104,3,7,0.08);
+  color:var(--wine);
+  text-decoration:none;
+  font-size:13px;
+  font-weight:700;
+  transition:transform 0.2s ease, background 0.2s ease;
+}
+
+.action-link:hover{
+  transform:translateY(-1px);
+  background:rgba(104,3,7,0.12);
+}
+
+.empty-state{
+  padding:48px 24px;
+  text-align:center;
+  color:var(--muted);
+}
+
+.icon-button,
+.ghost-button,
+.secondary-button,
+.primary-button{
+  border:none;
+  cursor:pointer;
+  display:inline-flex;
+  align-items:center;
+  gap:10px;
+  font-family:inherit;
+  transition:transform 0.2s ease, background 0.2s ease, box-shadow 0.2s ease;
+}
+
+.icon-button{
+  width:48px;
+  height:48px;
+  border-radius:16px;
+  justify-content:center;
+  background:#fff;
+  color:var(--wine);
+  box-shadow:0 10px 24px rgba(104,3,7,0.08);
+}
+
+.ghost-button,
+.secondary-button,
+.primary-button{
+  padding:13px 18px;
+  border-radius:16px;
+  font-size:14px;
+  font-weight:700;
+}
+
+.ghost-button{
+  background:rgba(104,3,7,0.08);
+  color:var(--wine);
+}
+
+.secondary-button{
+  background:#fff;
+  color:var(--wine);
+  box-shadow:0 10px 24px rgba(104,3,7,0.08);
+}
+
+.primary-button{
+  background:var(--wine);
+  color:var(--sand);
+  box-shadow:0 14px 28px rgba(104,3,7,0.24);
+}
+
+.icon-button:hover,
+.ghost-button:hover,
+.secondary-button:hover,
+.primary-button:hover{
+  transform:translateY(-1px);
+}
+
+@media (max-width: 1080px){
+  .filter-grid{
+    grid-template-columns:repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 760px){
+  .page-shell{
+    padding:18px;
+  }
+
+  .header{
+    flex-direction:column;
+  }
+
+  .header-copy h1{
+    font-size:28px;
+  }
+
+  .header-actions{
+    width:100%;
+  }
+
+  .header-actions button{
+    flex:1;
+    justify-content:center;
+  }
+
+  .filter-grid{
+    grid-template-columns:1fr;
+  }
+
+  .filter-footer{
+    flex-direction:column;
+    align-items:flex-start;
+  }
+}
+</style>
+</head>
+<body>
+
+<div class="page-shell">
+  <header class="header">
+    <div class="header-left">
+      <button class="icon-button" onclick="voltarAdmin()" aria-label="Voltar para o painel administrativo">
+        <i class="material-icons">arrow_back</i>
+      </button>
+
+      <div class="header-copy">
+        <span class="eyebrow">Equipe cadastrada</span>
+        <h1>Colaboradoras</h1>
+        <p>
+          Veja quem esta cadastrada, acompanhe o status no dia selecionado, confira horarios,
+          ultimo registro, quantidade de dias com ponto e quem ainda esta sem foto para reconhecimento.
+        </p>
+      </div>
+    </div>
+
+    <div class="header-actions">
+      <button class="secondary-button" onclick="window.location.href='cadastro.html'">
+        <i class="material-icons">person_add</i>
+        <span>Novo cadastro</span>
+      </button>
+
+      <button class="primary-button" onclick="window.location.href='dash.html'">
+        <i class="material-icons">insights</i>
+        <span>Ver dashboard</span>
+      </button>
+    </div>
+  </header>
+
+  <main class="content">
+    <section class="summary-grid">
+      <div class="summary-card">
+        <div class="summary-label">Cadastradas</div>
+        <div class="summary-value" id="metricTotal">0</div>
+        <div class="summary-note" id="metricTotalNote">Equipe cadastrada no sistema</div>
+      </div>
+
+      <div class="summary-card">
+        <div class="summary-label">Em expediente</div>
+        <div class="summary-value" id="metricAtivas">0</div>
+        <div class="summary-note" id="metricAtivasNote">Sem contar quem ja finalizou</div>
+      </div>
+
+      <div class="summary-card">
+        <div class="summary-label">Atrasos no dia</div>
+        <div class="summary-value" id="metricAtrasos">0</div>
+        <div class="summary-note" id="metricAtrasosNote">Entradas apos o horario previsto</div>
+      </div>
+
+      <div class="summary-card">
+        <div class="summary-label">Sem registro</div>
+        <div class="summary-value" id="metricAusentes">0</div>
+        <div class="summary-note" id="metricAusentesNote">Sem movimentacao no dia selecionado</div>
+      </div>
+
+      <div class="summary-card">
+        <div class="summary-label">Com foto facial</div>
+        <div class="summary-value" id="metricFotos">0</div>
+        <div class="summary-note" id="metricFotosNote">Cadastros prontos para reconhecimento</div>
+      </div>
+    </section>
+
+    <section class="panel filters-panel">
+      <div class="filter-grid">
+        <label class="field">
+          <span>Buscar por nome ou CPF</span>
+          <input type="text" id="buscaInput" placeholder="Ex: Ana, Mariana ou 12345678901">
+        </label>
+
+        <label class="field">
+          <span>Data analisada</span>
+          <input type="date" id="filtroData">
+        </label>
+
+        <label class="field">
+          <span>Status no dia</span>
+          <select id="filtroStatus">
+            <option value="todos">Todos</option>
+            <option value="presente">Em expediente</option>
+            <option value="almoco">Em almoco</option>
+            <option value="finalizado">Finalizado</option>
+            <option value="ausente">Sem registro</option>
+            <option value="incompleto">Registro parcial</option>
+          </select>
+        </label>
+
+        <label class="field">
+          <span>Foto facial</span>
+          <select id="filtroFoto">
+            <option value="todos">Todas</option>
+            <option value="com_foto">Com foto</option>
+            <option value="sem_foto">Sem foto</option>
+          </select>
+        </label>
+      </div>
+
+      <div class="filter-footer">
+        <div id="resultadoResumo">0 colaboradoras exibidas</div>
+
+        <button class="ghost-button" onclick="carregar()">
+          <i class="material-icons">refresh</i>
+          <span>Atualizar lista</span>
+        </button>
+      </div>
+    </section>
+
+    <section class="panel table-panel">
+      <div class="table-scroll">
+        <table>
+          <thead>
+            <tr>
+              <th>Colaboradora</th>
+              <th>Status do dia</th>
+              <th>Horario</th>
+              <th>Registros do dia</th>
+              <th>Ultima atividade</th>
+              <th>Historico</th>
+              <th>Cadastro</th>
+            </tr>
+          </thead>
+          <tbody id="corpoTabela"></tbody>
+        </table>
+      </div>
+    </section>
+  </main>
+</div>
+
+<script>
+const corpoTabela = document.getElementById("corpoTabela");
+const buscaInput = document.getElementById("buscaInput");
+const filtroData = document.getElementById("filtroData");
+const filtroStatus = document.getElementById("filtroStatus");
+const filtroFoto = document.getElementById("filtroFoto");
+let cachedColaboradoras = [];
+
+const EVENT_LABELS = {
+  entrada: "Entrada",
+  saida_almoco: "Saida almoco",
+  volta_almoco: "Volta almoco",
+  saida: "Saida",
+};
+
+function getLocalDateIso(date = new Date()) {
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, "0");
+  const day = String(date.getDate()).padStart(2, "0");
+  return `${year}-${month}-${day}`;
+}
+
+function normalizeCpf(value) {
+  return String(value || "").replace(/\D/g, "");
+}
+
+function formatCpf(value) {
+  const digits = normalizeCpf(value);
+  if (digits.length !== 11) {
+    return value || "-";
+  }
+
+  return `${digits.slice(0, 3)}.${digits.slice(3, 6)}.${digits.slice(6, 9)}-${digits.slice(9)}`;
+}
+
+function getEditHref(cpf) {
+  return `cadastro.html?cpf=${encodeURIComponent(normalizeCpf(cpf))}`;
+}
+
+function formatDateBr(value) {
+  if (!value || !/^\d{4}-\d{2}-\d{2}$/.test(value)) {
+    return "-";
+  }
+
+  const [year, month, day] = value.split("-");
+  return `${day}/${month}/${year}`;
+}
+
+function timeToMinutes(value) {
+  if (!value || !/^\d{2}:\d{2}$/.test(value)) {
+    return null;
+  }
+
+  const [hours, minutes] = value.split(":").map(Number);
+  return (hours * 60) + minutes;
+}
+
+function minutesToLabel(value) {
+  if (value === null || value === undefined || Number.isNaN(value)) {
+    return "-";
+  }
+
+  const hours = Math.floor(value / 60);
+  const minutes = value % 60;
+  return `${hours}h ${String(minutes).padStart(2, "0")}m`;
+}
+
+function getInitials(name) {
+  const parts = String(name || "").trim().split(/\s+/).filter(Boolean);
+  if (parts.length === 0) {
+    return "--";
+  }
+
+  return parts.slice(0, 2).map((part) => part[0].toUpperCase()).join("");
+}
+
+function collectEvents(dia) {
+  if (!dia) {
+    return [];
+  }
+
+  return Object.keys(EVENT_LABELS)
+    .filter((key) => dia[key])
+    .map((key) => ({
+      data: dia.data,
+      tipo: key,
+      hora: dia[key],
+      label: EVENT_LABELS[key],
+    }));
+}
+
+function getLatestEvent(colaboradora) {
+  let latest = null;
+
+  for (const dia of colaboradora.dias || []) {
+    for (const event of collectEvents(dia)) {
+      const stamp = `${event.data}T${event.hora}`;
+      if (!latest || stamp > latest.stamp) {
+        latest = { ...event, stamp };
+      }
+    }
+  }
+
+  return latest;
+}
+
+function getRegistroByDate(colaboradora, selectedDate) {
+  return (colaboradora.dias || []).find((dia) => dia.data === selectedDate) || null;
+}
+
+function getExpectedMinutes(colaboradora) {
+  const start = timeToMinutes(colaboradora.horario_inicio);
+  const end = timeToMinutes(colaboradora.horario_saida);
+  const [breakStart, breakEnd] = String(colaboradora.horario_descanso || "").split("-").map(timeToMinutes);
+
+  if (start === null || end === null || end <= start) {
+    return null;
+  }
+
+  const breakDuration = breakStart !== null && breakEnd !== null && breakEnd > breakStart
+    ? breakEnd - breakStart
+    : 0;
+
+  return Math.max(0, end - start - breakDuration);
+}
+
+function calculateWorkedMinutes(registro, selectedDate) {
+  if (!registro) {
+    return null;
+  }
+
+  const now = new Date();
+  const nowMinutes = (now.getHours() * 60) + now.getMinutes();
+  const selectedIsToday = selectedDate === getLocalDateIso(now);
+
+  const entrada = timeToMinutes(registro.entrada);
+  const saidaAlmoco = timeToMinutes(registro.saida_almoco);
+  const voltaAlmoco = timeToMinutes(registro.volta_almoco);
+  const saida = timeToMinutes(registro.saida);
+
+  let total = 0;
+  let hasSegment = false;
+
+  if (entrada !== null) {
+    const firstEnd = saidaAlmoco ?? saida ?? (selectedIsToday ? nowMinutes : null);
+    if (firstEnd !== null && firstEnd >= entrada) {
+      total += firstEnd - entrada;
+      hasSegment = true;
+    }
+  }
+
+  if (voltaAlmoco !== null) {
+    const secondEnd = saida ?? (selectedIsToday ? nowMinutes : null);
+    if (secondEnd !== null && secondEnd >= voltaAlmoco) {
+      total += secondEnd - voltaAlmoco;
+      hasSegment = true;
+    }
+  }
+
+  return hasSegment ? total : null;
+}
+
+function getStatusDetails(colaboradora, selectedDate) {
+  const registro = getRegistroByDate(colaboradora, selectedDate);
+  const hasAnyRecord = Boolean(
+    registro && (registro.entrada || registro.saida_almoco || registro.volta_almoco || registro.saida)
+  );
+
+  let key = "ausente";
+  let label = "Sem registro";
+
+  if (hasAnyRecord) {
+    if (registro.saida) {
+      key = "finalizado";
+      label = "Expediente finalizado";
+    } else if (registro.saida_almoco && !registro.volta_almoco) {
+      key = "almoco";
+      label = "Em almoco";
+    } else if (registro.entrada) {
+      key = "presente";
+      label = "Em expediente";
+    } else {
+      key = "incompleto";
+      label = "Registro parcial";
+    }
+  }
+
+  const entradaMinutos = timeToMinutes(registro?.entrada);
+  const inicioPrevisto = timeToMinutes(colaboradora.horario_inicio);
+  const lateMinutes = entradaMinutos !== null && inicioPrevisto !== null && entradaMinutos > inicioPrevisto
+    ? entradaMinutos - inicioPrevisto
+    : 0;
+
+  const workedMinutes = calculateWorkedMinutes(registro, selectedDate);
+  const expectedMinutes = getExpectedMinutes(colaboradora);
+  const progressPercent = workedMinutes !== null && expectedMinutes
+    ? Math.min(100, Math.round((workedMinutes / expectedMinutes) * 100))
+    : 0;
+
+  const latestToday = collectEvents(registro).slice().sort((a, b) => b.hora.localeCompare(a.hora))[0] || null;
+  const latestOverall = getLatestEvent(colaboradora);
+  const totalDiasComPonto = (colaboradora.dias || []).filter((dia) => collectEvents(dia).length > 0).length;
+
+  return {
+    registro,
+    hasAnyRecord,
+    key,
+    label,
+    lateMinutes,
+    isLate: lateMinutes > 0,
+    workedMinutes,
+    progressPercent,
+    latestToday,
+    latestOverall,
+    totalDiasComPonto,
+  };
+}
+
+function compareSeverity(a, b) {
+  const scoreMap = {
+    ausente: 0,
+    almoco: 1,
+    incompleto: 2,
+    presente: 3,
+    finalizado: 4,
+  };
+
+  const diff = scoreMap[a.status.key] - scoreMap[b.status.key];
+  if (diff !== 0) {
+    return diff;
+  }
+
+  if (a.status.isLate !== b.status.isLate) {
+    return a.status.isLate ? -1 : 1;
+  }
+
+  return a.colaboradora.nome.localeCompare(b.colaboradora.nome, "pt-BR");
+}
+
+function updateSummary(details) {
+  const total = details.length;
+  const ativas = details.filter((item) => ["presente", "almoco"].includes(item.status.key)).length;
+  const atrasos = details.filter((item) => item.status.isLate).length;
+  const ausentes = details.filter((item) => item.status.key === "ausente").length;
+  const fotos = details.filter((item) => item.colaboradora.tem_foto).length;
+  const cobertura = total > 0 ? Math.round(((total - ausentes) / total) * 100) : 0;
+
+  document.getElementById("metricTotal").textContent = total;
+  document.getElementById("metricAtivas").textContent = ativas;
+  document.getElementById("metricAtrasos").textContent = atrasos;
+  document.getElementById("metricAusentes").textContent = ausentes;
+  document.getElementById("metricFotos").textContent = fotos;
+
+  document.getElementById("metricTotalNote").textContent = `${Math.max(total - fotos, 0)} sem foto facial`;
+  document.getElementById("metricAtivasNote").textContent = `${cobertura}% da equipe teve algum registro no dia`;
+  document.getElementById("metricAtrasosNote").textContent = atrasos > 0
+    ? `${atrasos} colaboradora(s) entraram apos o horario`
+    : "Nenhum atraso encontrado no dia";
+  document.getElementById("metricAusentesNote").textContent = ausentes > 0
+    ? `${ausentes} colaboradora(s) ainda sem movimento`
+    : "Todas tiveram ao menos um registro";
+  document.getElementById("metricFotosNote").textContent = fotos > 0
+    ? `${fotos} cadastro(s) prontos para reconhecimento`
+    : "Nenhuma foto cadastrada ainda";
+}
+
+function matchesFilters(item) {
+  const search = buscaInput.value.trim().toLowerCase();
+  const statusFilter = filtroStatus.value;
+  const photoFilter = filtroFoto.value;
+  const cpf = normalizeCpf(item.colaboradora.cpf);
+  const nome = String(item.colaboradora.nome || "").toLowerCase();
+  const searchDigits = normalizeCpf(search);
+  const matchesCpf = searchDigits ? cpf.includes(searchDigits) : false;
+
+  if (search && !nome.includes(search) && !matchesCpf) {
+    return false;
+  }
+
+  if (statusFilter !== "todos" && item.status.key !== statusFilter) {
+    return false;
+  }
+
+  if (photoFilter === "com_foto" && !item.colaboradora.tem_foto) {
+    return false;
+  }
+
+  if (photoFilter === "sem_foto" && item.colaboradora.tem_foto) {
+    return false;
+  }
+
+  return true;
+}
+
+function renderTable(items, total) {
+  if (items.length === 0) {
+    corpoTabela.innerHTML = `
+      <tr>
+        <td colspan="7">
+          <div class="empty-state">
+            Nenhuma colaboradora encontrada com os filtros atuais.
+          </div>
+        </td>
+      </tr>
+    `;
+    document.getElementById("resultadoResumo").textContent = `0 de ${total} colaboradoras exibidas`;
+    return;
+  }
+
+  corpoTabela.innerHTML = items.map((item) => {
+    const { colaboradora, status } = item;
+    const fotoClass = colaboradora.tem_foto ? "chip-photo" : "chip-no-photo";
+    const fotoText = colaboradora.tem_foto ? "Com foto facial" : "Sem foto facial";
+    const latestLabel = status.latestOverall
+      ? `${status.latestOverall.label} em ${formatDateBr(status.latestOverall.data)}`
+      : "Sem historico de ponto";
+    const latestTime = status.latestOverall?.hora || "-";
+    const atrasoLabel = status.isLate ? `<div class="small-alert">Atraso de ${minutesToLabel(status.lateMinutes)}</div>` : "";
+    const jornadaLabel = status.workedMinutes !== null
+      ? `${minutesToLabel(status.workedMinutes)} registrados`
+      : "Jornada ainda sem calculo";
+
+    return `
+      <tr>
+        <td>
+          <div class="person-cell">
+            <div class="avatar ${colaboradora.tem_foto ? "" : "no-photo"}">${getInitials(colaboradora.nome)}</div>
+            <div>
+              <div class="person-name">${colaboradora.nome}</div>
+              <div class="muted">CPF ${formatCpf(colaboradora.cpf)}</div>
+            </div>
+          </div>
+        </td>
+
+        <td>
+          <span class="status-badge status-${status.key}">${status.label}</span>
+          ${atrasoLabel}
+        </td>
+
+        <td>
+          <div class="cell-stack">
+            <div>${colaboradora.horario_inicio || "-"} ate ${colaboradora.horario_saida || "-"}</div>
+            <div class="muted">Descanso ${colaboradora.horario_descanso || "-"}</div>
+          </div>
+        </td>
+
+        <td>
+          <div class="registro-list">
+            <div class="registro-item"><span>Entrada</span><strong>${status.registro?.entrada || "-"}</strong></div>
+            <div class="registro-item"><span>Saida almoco</span><strong>${status.registro?.saida_almoco || "-"}</strong></div>
+            <div class="registro-item"><span>Volta almoco</span><strong>${status.registro?.volta_almoco || "-"}</strong></div>
+            <div class="registro-item"><span>Saida</span><strong>${status.registro?.saida || "-"}</strong></div>
+          </div>
+        </td>
+
+        <td>
+          <div class="cell-stack">
+            <div>${latestLabel}</div>
+            <div class="muted">Horario ${latestTime}</div>
+            <div class="muted">${jornadaLabel}</div>
+          </div>
+        </td>
+
+        <td>
+          <div class="cell-stack">
+            <div>${status.totalDiasComPonto} dia(s) com ponto</div>
+            <div class="muted">${status.latestToday ? `Ultimo evento do dia: ${status.latestToday.label} ${status.latestToday.hora}` : "Nenhum evento na data analisada"}</div>
+            <div class="muted">Progresso do turno: ${status.progressPercent}%</div>
+          </div>
+        </td>
+
+        <td>
+          <div class="cell-stack">
+            <span class="chip ${fotoClass}">${fotoText}</span>
+            <div class="muted">Data analisada: ${formatDateBr(filtroData.value)}</div>
+            <a class="action-link" href="${getEditHref(colaboradora.cpf)}">
+              <i class="material-icons" style="font-size:16px;">edit</i>
+              <span>Editar cadastro</span>
+            </a>
+          </div>
+        </td>
+      </tr>
+    `;
+  }).join("");
+
+  document.getElementById("resultadoResumo").textContent = `${items.length} de ${total} colaboradoras exibidas`;
+}
+
+function renderFromCache() {
+  const details = cachedColaboradoras
+    .map((colaboradora) => ({
+      colaboradora,
+      status: getStatusDetails(colaboradora, filtroData.value),
+    }))
+    .sort(compareSeverity);
+
+  updateSummary(details);
+  renderTable(details.filter(matchesFilters), details.length);
+}
+
+async function carregar() {
+  try {
+    const response = await fetch("/api/dashboard");
+    const data = await response.json();
+    cachedColaboradoras = data.registros_ponto || [];
+    renderFromCache();
+  } catch (error) {
+    console.error("Erro ao carregar colaboradoras:", error);
+    corpoTabela.innerHTML = `
+      <tr>
+        <td colspan="7">
+          <div class="empty-state">Nao foi possivel carregar a lista de colaboradoras.</div>
+        </td>
+      </tr>
+    `;
+    document.getElementById("resultadoResumo").textContent = "Falha ao carregar dados";
+  }
+}
+
+function voltarAdmin() {
+  window.location.href = "admin.html";
+}
+
+filtroData.value = getLocalDateIso();
+buscaInput.addEventListener("input", renderFromCache);
+filtroStatus.addEventListener("change", renderFromCache);
+filtroFoto.addEventListener("change", renderFromCache);
+filtroData.addEventListener("change", renderFromCache);
+
+carregar();
+</script>
+
+</body>
+</html>

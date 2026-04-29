@@ -1,108 +1,119 @@
 const express = require("express");
-const fs = require("fs");
 const path = require("path");
+const {
+  DB_PATH,
+  findColaboradoraByCpf,
+  getAllReports,
+  getColaboradorReport,
+  listColaboradoras,
+  registerPonto,
+  upsertColaboradora,
+} = require("./database");
 
 const app = express();
-// Aumentar o limite para suportar o envio de descritores faciais se necessário (embora sejam pequenos)
-app.use(express.json({ limit: '50mb' }));
+
+app.use(express.json({ limit: "50mb" }));
+app.use("/data", (_req, res) => res.status(404).end());
 app.use(express.static(__dirname));
+app.use("/node_modules", express.static(path.join(__dirname, "node_modules")));
+app.use("/models", express.static(path.join(__dirname, "models")));
 
-// Servir a pasta node_modules para que o frontend acesse o face-api.js
-app.use('/node_modules', express.static(path.join(__dirname, 'node_modules')));
-// Servir a pasta models
-app.use('/models', express.static(path.join(__dirname, 'models')));
+function extractRegistroPayload(body = {}) {
+  if (body?.dia) {
+    return {
+      cpf: body.cpf,
+      tipo: body.dia.tipo,
+      data: body.dia.data,
+      hora: body.dia.hora,
+    };
+  }
 
-const arquivo = path.join(__dirname, "assets", "registros_pontos.json");
-const caminhoColaboradoras = path.join(__dirname, "assets", "colaboradoras.json");
+  return body;
+}
 
-// Registrar ponto
-app.post("/registrar-ponto", (req, res) => {
-    const novoRegistro = req.body;
-
-    let banco = { registros_ponto: [] };
-
-    if (fs.existsSync(arquivo)) {
-        const dados = fs.readFileSync(arquivo);
-        banco = JSON.parse(dados);
-    }
-
-    let colaborador = banco.registros_ponto.find(c => c.cpf === novoRegistro.cpf);
-
-    if (!colaborador) {
-        colaborador = {
-            cpf: novoRegistro.cpf,
-            nome: novoRegistro.nome,
-            dias: []
-        };
-        banco.registros_ponto.push(colaborador);
-    }
-
-    colaborador.dias.push(novoRegistro.dia);
-
-    fs.writeFileSync(arquivo, JSON.stringify(banco, null, 2));
-
-    res.json({ mensagem: "Ponto registrado com sucesso!" });
+app.get("/api/colaboradoras", (_req, res) => {
+  res.json({ colaboradoras: listColaboradoras() });
 });
 
-app.post("/cadastrar-colaboradora", (req, res) => {
-    const nova = req.body;
+app.get("/api/colaboradoras/:cpf", (req, res) => {
+  const colaboradora = findColaboradoraByCpf(req.params.cpf, {
+    includeFaceDescriptor: true,
+  });
 
-    let banco = { colaboradoras: [] };
+  if (!colaboradora) {
+    return res.status(404).json({ mensagem: "Colaboradora nao encontrada." });
+  }
 
-    if (fs.existsSync(caminhoColaboradoras)) {
-        const dados = fs.readFileSync(caminhoColaboradoras);
-        banco = JSON.parse(dados);
-    }
-
-    // Verifica CPF duplicado
-    const indexExistente = banco.colaboradoras.findIndex(c => c.cpf === nova.cpf);
-    if (indexExistente !== -1) {
-        // Se já existe, vamos atualizar (útil para recadastrar face)
-        banco.colaboradoras[indexExistente] = { ...banco.colaboradoras[indexExistente], ...nova };
-        fs.writeFileSync(caminhoColaboradoras, JSON.stringify(banco, null, 2));
-        return res.json({ mensagem: "Cadastro atualizado com sucesso!" });
-    }
-
-    banco.colaboradoras.push(nova);
-    fs.writeFileSync(caminhoColaboradoras, JSON.stringify(banco, null, 2));
-
-    res.json({ mensagem: "Colaboradora cadastrada com sucesso!" });
+  return res.json(colaboradora);
 });
 
-app.get("/relatorio/:cpf", (req, res) => {
-    const cpf = req.params.cpf;
-
-    if (!fs.existsSync(arquivo)) {
-        return res.json({ dias: [] });
+app.post(["/api/cadastrar-colaboradora", "/cadastrar-colaboradora"], (req, res) => {
+  try {
+    const resultado = upsertColaboradora(req.body);
+    return res.json({
+      mensagem: resultado.isUpdate
+        ? "Cadastro atualizado com sucesso!"
+        : "Colaboradora cadastrada com sucesso!",
+      colaboradora: resultado.colaboradora,
+    });
+  } catch (error) {
+    if (error.message === "INVALID_COLABORADORA_PAYLOAD") {
+      return res.status(400).json({
+        mensagem: "Preencha nome, CPF, horario de inicio, horario de saida e descanso.",
+      });
     }
 
-    const dados = JSON.parse(fs.readFileSync(arquivo));
-    const colaborador = dados.registros_ponto.find(c => c.cpf === cpf);
-
-    if (!colaborador) {
-        return res.json({ dias: [] });
-    }
-
-    res.json(colaborador);
+    console.error("Erro ao cadastrar colaboradora:", error);
+    return res.status(500).json({ mensagem: "Erro interno ao salvar colaboradora." });
+  }
 });
 
-app.get("/relatorio-geral", (req, res) => {
-    if (!fs.existsSync(arquivo)) {
-        return res.json({ registros_ponto: [] });
+app.post(["/api/registrar-ponto", "/registrar-ponto"], (req, res) => {
+  try {
+    const resultado = registerPonto(extractRegistroPayload(req.body));
+
+    if (resultado.notFound) {
+      return res.status(404).json({ mensagem: "Colaboradora nao encontrada." });
     }
-    const dados = JSON.parse(fs.readFileSync(arquivo));
-    res.json(dados);
+
+    return res.json({
+      mensagem: resultado.isUpdate
+        ? "Ponto atualizado com sucesso!"
+        : "Ponto registrado com sucesso!",
+      colaboradora: resultado.colaboradora,
+    });
+  } catch (error) {
+    if (error.message === "INVALID_REGISTRO_PAYLOAD") {
+      return res.status(400).json({
+        mensagem: "Informe CPF, data, tipo e hora validos para registrar o ponto.",
+      });
+    }
+
+    console.error("Erro ao registrar ponto:", error);
+    return res.status(500).json({ mensagem: "Erro interno ao registrar ponto." });
+  }
 });
 
-app.get("/dashboard", (req, res) => {
-    if (!fs.existsSync(arquivo)) {
-        return res.json({ registros_ponto: [] });
-    }
-    const dados = JSON.parse(fs.readFileSync(arquivo));
-    res.json(dados);
+app.get(["/api/relatorio/:cpf", "/relatorio/:cpf"], (req, res) => {
+  const colaboradora = getColaboradorReport(req.params.cpf);
+
+  if (!colaboradora) {
+    return res.json({ dias: [] });
+  }
+
+  return res.json(colaboradora);
+});
+
+app.get(["/api/relatorio-geral", "/relatorio-geral"], (_req, res) => {
+  return res.json({ registros_ponto: getAllReports() });
+});
+
+app.get(["/api/dashboard", "/dashboard"], (_req, res) => {
+  return res.json({ registros_ponto: getAllReports() });
 });
 
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
-    console.log(`Servidor rodando na porta ${PORT}`);
+  console.log(`Servidor rodando na porta ${PORT}`);
+  console.log(`Banco SQLite em: ${DB_PATH}`);
 });
