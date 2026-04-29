@@ -4,103 +4,346 @@
 <meta charset="UTF-8">
 <title>Login - Sistema de Ponto</title>
 
-<link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
 
 <style>
+:root{
+  --wine:#680307;
+  --wine-dark:#3f0105;
+  --sand:#e8d9c3;
+  --paper:#fffaf4;
+  --ink:#2d2725;
+  --muted:#7b6d66;
+  --line:rgba(104,3,7,0.14);
+  --glow:0 28px 60px rgba(39,11,13,0.26);
+}
+
 *{
   box-sizing:border-box;
 }
 
 body{
   margin:0;
-  font-family:'Roboto', sans-serif;
-  height:100vh;
-  display:flex;
-  justify-content:center;
-  align-items:center;
-  background:linear-gradient(135deg,#680307,#680307);
+  min-height:100vh;
+  font-family:'Manrope', sans-serif;
+  color:var(--ink);
+  background:
+    radial-gradient(circle at 10% 15%, rgba(232,217,195,0.18), transparent 26%),
+    radial-gradient(circle at 90% 12%, rgba(184,95,42,0.22), transparent 24%),
+    linear-gradient(135deg, var(--wine-dark) 0%, var(--wine) 48%, #9a5d35 100%);
 }
 
-.card{
-  background:#e8d9c3;
-  width:360px;
-  padding:40px;
-  border-radius:12px;
-  box-shadow:0 15px 35px rgba(0,0,0,0.2);
+.page-shell{
+  min-height:100vh;
+  display:grid;
+  place-items:center;
+  padding:28px;
 }
 
-h2{
-  margin-top:0;
-  margin-bottom:30px;
-  font-weight:500;
-  text-align:center;
-  color:#333;
+.login-layout{
+  width:min(1080px, 100%);
+  display:grid;
+  grid-template-columns:1.1fr 0.9fr;
+  gap:24px;
+  align-items:stretch;
 }
 
-.input-group{
+.hero-panel,
+.form-panel{
+  border-radius:30px;
+  overflow:hidden;
+  box-shadow:var(--glow);
+}
+
+.hero-panel{
   position:relative;
-  margin-bottom:25px;
+  padding:42px;
+  background:
+    linear-gradient(140deg, rgba(232,217,195,0.12), transparent 55%),
+    linear-gradient(135deg, rgba(46,8,10,0.78), rgba(104,3,7,0.92));
+  color:var(--sand);
 }
 
-input{
-  width:100%;
-  padding:12px 10px;
-  border:none;
-  border-bottom:2px solid #ccc;
-  font-size:14px;
-  outline:none;
-  transition:0.3s;
+.hero-panel::after{
+  content:"";
+  position:absolute;
+  inset:auto -70px -70px auto;
+  width:240px;
+  height:240px;
+  border-radius:50%;
+  background:radial-gradient(circle, rgba(232,217,195,0.22), transparent 70%);
 }
 
-input:focus{
-  border-bottom:2px solid #680307;
+.eyebrow{
+  display:inline-flex;
+  align-items:center;
+  gap:8px;
+  padding:9px 14px;
+  border-radius:999px;
+  background:rgba(255,255,255,0.1);
+  border:1px solid rgba(255,255,255,0.12);
+  font-size:12px;
+  font-weight:700;
+  text-transform:uppercase;
+  letter-spacing:0.08em;
 }
 
-button{
-  width:100%;
-  padding:12px;
-  border:none;
-  border-radius:8px;
-  background:#680307;
-  color:#e8d9c3;
+.hero-panel h1{
+  margin:20px 0 14px;
+  font-size:42px;
+  line-height:1.1;
+}
+
+.hero-panel p{
+  margin:0 0 28px;
+  max-width:520px;
+  line-height:1.7;
+  color:rgba(232,217,195,0.86);
+}
+
+.feature-list{
+  display:grid;
+  gap:14px;
+}
+
+.feature-item{
+  display:flex;
+  gap:14px;
+  align-items:flex-start;
+  padding:16px 18px;
+  border-radius:20px;
+  background:rgba(255,255,255,0.08);
+  border:1px solid rgba(255,255,255,0.1);
+}
+
+.feature-item i{
+  color:#f4d2ab;
+}
+
+.feature-item strong{
+  display:block;
+  margin-bottom:4px;
   font-size:15px;
-  font-weight:500;
-  cursor:pointer;
-  transition:0.3s;
 }
 
-button:hover{
-  background:#890408;
+.feature-item span{
+  color:rgba(232,217,195,0.8);
+  font-size:14px;
+  line-height:1.5;
+}
+
+.form-panel{
+  padding:34px;
+  background:rgba(255,250,244,0.94);
+  border:1px solid rgba(255,255,255,0.7);
+  backdrop-filter:blur(10px);
+}
+
+.brand-mark{
+  width:58px;
+  height:58px;
+  border-radius:20px;
+  display:grid;
+  place-items:center;
+  margin-bottom:22px;
+  background:linear-gradient(135deg, rgba(104,3,7,0.12), rgba(154,93,53,0.2));
+  color:var(--wine);
+}
+
+.form-panel h2{
+  margin:0 0 10px;
+  font-size:32px;
+}
+
+.form-panel p{
+  margin:0 0 26px;
+  line-height:1.6;
+  color:var(--muted);
+}
+
+.login-form{
+  display:grid;
+  gap:16px;
+}
+
+.field{
+  display:grid;
+  gap:8px;
+}
+
+.field label{
+  font-size:13px;
+  font-weight:700;
+  color:var(--muted);
+}
+
+.field input{
+  width:100%;
+  padding:15px 16px;
+  border-radius:18px;
+  border:1px solid rgba(104,3,7,0.14);
+  background:#fff;
+  font:inherit;
+  color:var(--ink);
+  outline:none;
+  transition:border-color 0.2s ease, box-shadow 0.2s ease, transform 0.2s ease;
+}
+
+.field input:focus{
+  border-color:rgba(104,3,7,0.42);
+  box-shadow:0 0 0 4px rgba(104,3,7,0.08);
+  transform:translateY(-1px);
+}
+
+.helper{
+  display:flex;
+  gap:10px;
+  align-items:flex-start;
+  padding:14px 16px;
+  border-radius:18px;
+  background:rgba(104,3,7,0.05);
+  color:var(--muted);
+  font-size:13px;
+  line-height:1.55;
+}
+
+.helper i{
+  color:var(--wine);
+}
+
+.submit-button{
+  width:100%;
+  border:none;
+  border-radius:18px;
+  padding:16px 18px;
+  background:linear-gradient(135deg, var(--wine), #8a1f24);
+  color:var(--sand);
+  font:inherit;
+  font-size:15px;
+  font-weight:800;
+  cursor:pointer;
+  box-shadow:0 18px 34px rgba(104,3,7,0.24);
+  transition:transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.submit-button:hover{
   transform:translateY(-2px);
+  box-shadow:0 22px 38px rgba(104,3,7,0.28);
 }
 
 .footer{
+  margin-top:18px;
   text-align:center;
-  margin-top:15px;
   font-size:12px;
-  color:#777;
+  color:var(--muted);
+}
+
+@media (max-width: 900px){
+  .login-layout{
+    grid-template-columns:1fr;
+  }
+
+  .hero-panel h1{
+    font-size:34px;
+  }
+}
+
+@media (max-width: 640px){
+  .page-shell{
+    padding:18px;
+  }
+
+  .hero-panel,
+  .form-panel{
+    padding:24px;
+    border-radius:24px;
+  }
+
+  .hero-panel h1{
+    font-size:30px;
+  }
+
+  .form-panel h2{
+    font-size:28px;
+  }
 }
 </style>
 </head>
 <body>
 
-<div class="card">
-  <h2>Sistema de Ponto</h2>
+<div class="page-shell">
+  <div class="login-layout">
+    <section class="hero-panel">
+      <span class="eyebrow">
+        <i class="material-icons" style="font-size:16px;">schedule</i>
+        Sistema interno
+      </span>
 
-  <form id="loginForm">
-    <div class="input-group">
-      <input type="text" id="usuario" placeholder="Usuario ou CPF" required>
-    </div>
+      <h1>Controle de ponto com acesso rapido para equipe e administracao.</h1>
+      <p>
+        Entre com usuario administrativo ou com o CPF da colaboradora para registrar,
+        acompanhar e manter a jornada organizada em um fluxo simples e seguro.
+      </p>
 
-    <div class="input-group">
-      <input type="password" id="senha" placeholder="Senha (somente admin)">
-    </div>
+      <div class="feature-list">
+        <div class="feature-item">
+          <i class="material-icons">admin_panel_settings</i>
+          <div>
+            <strong>Painel administrativo</strong>
+            <span>Cadastre colaboradoras, acompanhe indicadores e gere relatorios em poucos cliques.</span>
+          </div>
+        </div>
 
-    <button type="submit">Entrar</button>
-  </form>
+        <div class="feature-item">
+          <i class="material-icons">face</i>
+          <div>
+            <strong>Validacao facial</strong>
+            <span>Registros com biometria facial para dar mais seguranca ao processo de ponto.</span>
+          </div>
+        </div>
 
-  <div class="footer">
-    &copy; 2026 Sistema Interno
+        <div class="feature-item">
+          <i class="material-icons">insights</i>
+          <div>
+            <strong>Visao operacional</strong>
+            <span>Dashboards e listas ajudam a identificar atrasos, ausencias e pendencias rapidamente.</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="form-panel">
+      <div class="brand-mark">
+        <i class="material-icons" style="font-size:28px;">login</i>
+      </div>
+
+      <h2>Acessar sistema</h2>
+      <p>Use seu usuario administrativo ou informe o CPF da colaboradora para continuar.</p>
+
+      <form id="loginForm" class="login-form">
+        <div class="field">
+          <label for="usuario">Usuario ou CPF</label>
+          <input type="text" id="usuario" placeholder="Digite seu usuario ou CPF" required>
+        </div>
+
+        <div class="field">
+          <label for="senha">Senha</label>
+          <input type="password" id="senha" placeholder="Preencha apenas para acesso admin">
+        </div>
+
+        <div class="helper">
+          <i class="material-icons" style="font-size:18px;">info</i>
+          <span>Colaboradoras entram apenas com o CPF. Administradores usam usuario e senha.</span>
+        </div>
+
+        <button type="submit" class="submit-button">Entrar</button>
+      </form>
+
+      <div class="footer">
+        &copy; 2026 Sistema Interno
+      </div>
+    </section>
   </div>
 </div>
 

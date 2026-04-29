@@ -3,35 +3,339 @@
 <head>
 <meta charset="UTF-8">
 <title>Relatorio de Ponto</title>
-<link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500&display=swap" rel="stylesheet">
+
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+
 <style>
-body{ margin:0; font-family:'Roboto', sans-serif; min-height:100vh; display:flex; justify-content:center; align-items:center; background:linear-gradient(135deg,#680307,#680307); }
-.card{ background:#e8d9c3; width:520px; padding:35px; border-radius:12px; box-shadow:0 15px 35px rgba(0,0,0,0.2); }
-h2{ margin-top:0; text-align:center; font-weight:500; }
-.input-group{ margin-bottom:20px; }
-input{ width:100%; padding:10px; border:none; border-bottom:2px solid #ccc; outline:none; font-size:14px; }
-input:focus{ border-bottom:2px solid #680307; }
-button{ width:100%; padding:12px; border:none; border-radius:8px; background:#680307; color:#e8d9c3; font-weight:500; cursor:pointer; transition:0.3s; margin-bottom:10px; }
-button:hover{ background:#890408; }
-.mensagem{ margin-top:15px; font-size:13px; }
-.voltar{ background:#9e9e9e; border:none; color:#e8d9c3; padding:6px 12px; margin-left:20px; border-radius:6px; cursor:pointer; font-size:12px; }
-.voltar:hover{ background:#757575; }
-.top-bar{ display:flex; justify-content:space-between; align-items:center; margin-bottom:20px; }
+:root{
+  --wine:#680307;
+  --wine-dark:#3f0105;
+  --sand:#e8d9c3;
+  --paper:#fffaf4;
+  --ink:#2d2725;
+  --muted:#7b6d66;
+  --line:rgba(104,3,7,0.14);
+  --shadow:0 28px 60px rgba(39,11,13,0.22);
+}
+
+*{
+  box-sizing:border-box;
+}
+
+body{
+  margin:0;
+  min-height:100vh;
+  font-family:'Manrope', sans-serif;
+  color:var(--ink);
+  background:
+    radial-gradient(circle at 12% 14%, rgba(232,217,195,0.18), transparent 22%),
+    radial-gradient(circle at 88% 10%, rgba(184,95,42,0.18), transparent 20%),
+    linear-gradient(135deg, var(--wine-dark) 0%, var(--wine) 46%, #9a5d35 100%);
+}
+
+.page-shell{
+  min-height:100vh;
+  display:grid;
+  place-items:center;
+  padding:28px;
+}
+
+.report-card{
+  width:min(1080px, 100%);
+  padding:30px;
+  border-radius:32px;
+  background:rgba(255,250,244,0.95);
+  border:1px solid rgba(255,255,255,0.72);
+  box-shadow:var(--shadow);
+  backdrop-filter:blur(10px);
+}
+
+.top-bar{
+  display:flex;
+  justify-content:space-between;
+  align-items:flex-start;
+  gap:16px;
+  margin-bottom:26px;
+}
+
+.eyebrow{
+  display:inline-flex;
+  align-items:center;
+  gap:8px;
+  padding:9px 14px;
+  border-radius:999px;
+  background:rgba(104,3,7,0.08);
+  color:var(--wine);
+  font-size:12px;
+  font-weight:800;
+  letter-spacing:0.08em;
+  text-transform:uppercase;
+}
+
+.top-bar h2{
+  margin:14px 0 10px;
+  font-size:34px;
+}
+
+.top-bar p{
+  margin:0;
+  max-width:640px;
+  color:var(--muted);
+  line-height:1.65;
+}
+
+.voltar{
+  border:none;
+  border-radius:16px;
+  background:#fff;
+  color:var(--wine);
+  padding:12px 16px;
+  font:inherit;
+  font-weight:700;
+  cursor:pointer;
+  display:inline-flex;
+  align-items:center;
+  gap:8px;
+  box-shadow:0 12px 24px rgba(104,3,7,0.08);
+}
+
+.voltar:hover{
+  transform:translateY(-1px);
+}
+
+.actions-grid{
+  display:grid;
+  grid-template-columns:1.05fr 0.95fr;
+  gap:18px;
+}
+
+.panel{
+  padding:24px;
+  border-radius:26px;
+  background:linear-gradient(180deg, rgba(255,255,255,0.78), rgba(232,217,195,0.4));
+  border:1px solid var(--line);
+}
+
+.panel h3{
+  margin:0 0 10px;
+  font-size:22px;
+}
+
+.panel p{
+  margin:0 0 18px;
+  color:var(--muted);
+  line-height:1.6;
+}
+
+.field{
+  display:grid;
+  gap:8px;
+  margin-bottom:18px;
+}
+
+.field label{
+  font-size:13px;
+  font-weight:700;
+  color:var(--muted);
+}
+
+.field input{
+  width:100%;
+  padding:15px 16px;
+  border-radius:18px;
+  border:1px solid rgba(104,3,7,0.14);
+  background:#fff;
+  font:inherit;
+  color:var(--ink);
+  outline:none;
+  transition:border-color 0.2s ease, box-shadow 0.2s ease, transform 0.2s ease;
+}
+
+.field input:focus{
+  border-color:rgba(104,3,7,0.42);
+  box-shadow:0 0 0 4px rgba(104,3,7,0.08);
+  transform:translateY(-1px);
+}
+
+.button-row{
+  display:grid;
+  gap:12px;
+}
+
+.button{
+  width:100%;
+  border:none;
+  border-radius:18px;
+  padding:16px 18px;
+  font:inherit;
+  font-size:15px;
+  font-weight:800;
+  cursor:pointer;
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  gap:10px;
+  transition:transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.button:hover{
+  transform:translateY(-2px);
+}
+
+.button.primary{
+  background:linear-gradient(135deg, var(--wine), #8a1f24);
+  color:var(--sand);
+  box-shadow:0 18px 34px rgba(104,3,7,0.24);
+}
+
+.button.secondary{
+  background:linear-gradient(135deg, #8b5e34, #b37a44);
+  color:#fffaf4;
+  box-shadow:0 18px 34px rgba(139,94,52,0.2);
+}
+
+.tip-list{
+  display:grid;
+  gap:12px;
+}
+
+.tip-item{
+  display:flex;
+  gap:12px;
+  align-items:flex-start;
+  padding:14px 16px;
+  border-radius:18px;
+  background:rgba(104,3,7,0.05);
+}
+
+.tip-item i{
+  color:var(--wine);
+}
+
+.tip-item strong{
+  display:block;
+  margin-bottom:4px;
+  font-size:14px;
+}
+
+.tip-item span{
+  color:var(--muted);
+  font-size:13px;
+  line-height:1.55;
+}
+
+.mensagem{
+  margin-top:18px;
+  padding:14px 16px;
+  border-radius:18px;
+  background:rgba(104,3,7,0.05);
+  color:var(--muted);
+  font-size:13px;
+  line-height:1.55;
+  min-height:52px;
+}
+
+@media (max-width: 860px){
+  .actions-grid{
+    grid-template-columns:1fr;
+  }
+}
+
+@media (max-width: 640px){
+  .page-shell{
+    padding:18px;
+  }
+
+  .report-card{
+    padding:22px;
+    border-radius:24px;
+  }
+
+  .top-bar{
+    flex-direction:column;
+  }
+
+  .top-bar h2{
+    font-size:30px;
+  }
+}
 </style>
 </head>
 <body>
-<div class="card">
-<div class="top-bar">
-  <h2>Relatorio</h2>
-  <button class="voltar" onclick="voltar()">Voltar</button>
-</div>
-<div class="input-group">
-  <input type="text" id="cpfRelatorio" placeholder="Digite o CPF para relatorio individual">
-</div>
-<button onclick="gerarPDFIndividual()">Gerar Relatorio Individual</button>
-<hr style="margin:20px 0">
-<button onclick="gerarPDFGeral()">Gerar Relatorio Geral (Todos)</button>
-<div class="mensagem" id="mensagem"></div>
+
+<div class="page-shell">
+  <div class="report-card">
+    <div class="top-bar">
+      <div>
+        <span class="eyebrow">
+          <i class="material-icons" style="font-size:16px;">description</i>
+          Central de relatorios
+        </span>
+        <h2>Folhas de ponto</h2>
+        <p>
+          Gere o PDF individual de uma colaboradora ou exporte a folha geral da equipe.
+          O layout foi organizado para deixar o processo mais direto e mais facil de conferir.
+        </p>
+      </div>
+
+      <button class="voltar" onclick="voltar()">
+        <i class="material-icons" style="font-size:18px;">arrow_back</i>
+        <span>Voltar</span>
+      </button>
+    </div>
+
+    <div class="actions-grid">
+      <section class="panel">
+        <h3>Relatorio individual</h3>
+        <p>Informe o CPF da colaboradora para gerar a folha de ponto correspondente ao periodo atual.</p>
+
+        <div class="field">
+          <label for="cpfRelatorio">CPF da colaboradora</label>
+          <input type="text" id="cpfRelatorio" placeholder="Digite o CPF para o relatorio individual">
+        </div>
+
+        <div class="button-row">
+          <button class="button primary" onclick="gerarPDFIndividual()">
+            <i class="material-icons" style="font-size:18px;">picture_as_pdf</i>
+            <span>Gerar Relatorio Individual</span>
+          </button>
+        </div>
+      </section>
+
+      <section class="panel">
+        <h3>Relatorio geral</h3>
+        <p>Use esta opcao para gerar um PDF unico com a folha de ponto de todas as colaboradoras.</p>
+
+        <div class="button-row" style="margin-bottom:18px;">
+          <button class="button secondary" onclick="gerarPDFGeral()">
+            <i class="material-icons" style="font-size:18px;">library_books</i>
+            <span>Gerar Relatorio Geral</span>
+          </button>
+        </div>
+
+        <div class="tip-list">
+          <div class="tip-item">
+            <i class="material-icons" style="font-size:18px;">check_circle</i>
+            <div>
+              <strong>PDF pronto para envio</strong>
+              <span>Os relatórios já saem prontos para conferência e compartilhamento interno.</span>
+            </div>
+          </div>
+
+          <div class="tip-item">
+            <i class="material-icons" style="font-size:18px;">query_stats</i>
+            <div>
+              <strong>Conferencia centralizada</strong>
+              <span>Ideal para validar a equipe toda de uma vez no fechamento do periodo.</span>
+            </div>
+          </div>
+        </div>
+      </section>
+    </div>
+
+    <div class="mensagem" id="mensagem"></div>
+  </div>
 </div>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
@@ -188,6 +492,8 @@ async function gerarPDFGeral() {
 function voltar() {
   window.location.href = "admin.html";
 }
+
+setMensagem("Escolha o tipo de relatorio que deseja gerar.", "#7b6d66");
 </script>
 </body>
 </html>
